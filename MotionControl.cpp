@@ -6,6 +6,9 @@ CMotionControl::CMotionControl(void)
 {
 
 	//OpenModbus( 9, 9600*2);
+	m_nPort = 9;
+	m_nBaudrate = 19200;
+
 }
 
 
@@ -62,14 +65,14 @@ void CMotionControl::CloseModubus()
 
 void CMotionControl::Start(unsigned short nStartBitAddress)
 {
-	m_Modbus.ModbusWriteDS(9,9200*2,nStartBitAddress,0XFFFF);
+	m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,nStartBitAddress,0XFFFF);
 
 }
 
 void CMotionControl::WriteSingleStepStart(unsigned short nStartBitAddress)
 {
 	short value = 0x0001 << m_nSegNum;
-	if (!m_Modbus.ModbusWriteDS(9,9200*2,nStartBitAddress,value))
+	if (!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,nStartBitAddress,value))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 		
 }
@@ -86,13 +89,13 @@ void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
 	velH = (short) ((int)m_fSpeed/1000);
 	velL = (short) ((int)m_fSpeed%1000);
 	short addr = m_nMBBaseAdress;
-	if ( !m_Modbus.ModbusWriteDS(9,9200*2,addr++,posH) ||
-	!m_Modbus.ModbusWriteDS(9,9200*2,addr++,posL) ||
-	!m_Modbus.ModbusWriteDS(9,9200*2,addr++,velH) ||
-	!m_Modbus.ModbusWriteDS(9,9200*2,addr++,velL) ||
-	!m_Modbus.ModbusWriteDS(9,9200*2,addr++,acc)  ||
-	!m_Modbus.ModbusWriteDS(9,9200*2,addr++,dec)  ||
-	!m_Modbus.ModbusWriteDS(9,9200*2,addr++,jerk))
+	if ( !m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,posH) ||
+	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,posL) ||
+	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,velH) ||
+	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,velL) ||
+	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,acc)  ||
+	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,dec)  ||
+	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,jerk))
 	{
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 	}
@@ -101,7 +104,7 @@ void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
 
 void CMotionControl::WriteSegNum(unsigned short nSegNumAddress)
 {
-	if (!m_Modbus.ModbusWriteDS(9,9200*2,nSegNumAddress,(short)m_nSegNum))
+	if (!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,nSegNumAddress,(short)m_nSegNum))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 		
 
@@ -118,13 +121,13 @@ int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned 
 
 	short* captureMB = new short[2];
 			
-	if (!m_Modbus.ModbusReadDSOneByOne(9,9200*2,nCompleteBitAddress,1,value))
+	if (!m_Modbus.ModbusReadDSOneByOne(m_nPort,m_nBaudrate,nCompleteBitAddress,1,value))
 		AfxMessageBox(m_Modbus.modbusStatus.c_str());
 
 	if( *value & (0x0001 << m_nSegNum))
 	{
 		pollstart = nCaptureAddress + m_nSegNum*2;
-		m_Modbus.ModbusReadDSOneByOne(9,9200*2,pollstart,2,captureMB);
+		m_Modbus.ModbusReadDSOneByOne(m_nPort,m_nBaudrate,pollstart,2,captureMB);
 		// read capture
 		short val = captureMB[0]*1000+captureMB[1];
 
@@ -137,11 +140,11 @@ int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned 
 		capture = val;
 		// read z value
 		pollstart = nZCaptureAddress + m_nSegNum*2;
-		m_Modbus.ModbusReadFloat(9,9200*2,pollstart,1,&z_value);
+		m_Modbus.ModbusReadFloat(m_nPort,m_nBaudrate,pollstart,1,&z_value);
 
 		// reset move complete
 		short addr = m_nMBBaseAdress;
-		m_Modbus.ModbusWriteDS(9,9200*2,addr,0);
+		m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr,0);
 		return 0;
 	}
 	return 1;

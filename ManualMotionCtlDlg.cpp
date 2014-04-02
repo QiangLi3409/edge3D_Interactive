@@ -67,6 +67,22 @@ BOOL CManualMotionCtlDlg::OnInitDialog()
 	m_MotionSeg.SetCurSel(0);
 	m_nMotionSegIndex = 0;
 
+
+	GetDlgItem(IDC_PORT)->SetWindowTextA("9");
+	GetDlgItem(IDC_BAUDRATE)->SetWindowTextA("192000");
+	GetDlgItem(IDC_STARTADDRESS)->SetWindowTextA("424976");
+	GetDlgItem(IDC_CAPTUREADDRESS)->SetWindowTextA("400301");
+	GetDlgItem(IDC_ZADDRESS)->SetWindowTextA("429273");
+	GetDlgItem(IDC_COMPLETEADDRESS)->SetWindowTextA("424977");
+	GetDlgItem(IDC_SEGNUMADDRESS)->SetWindowTextA("400300");
+	GetDlgItem(IDC_PROFILEADDRESS)->SetWindowTextA("400200");
+	
+
+
+
+
+
+
 	return TRUE;
 }
 
@@ -85,6 +101,25 @@ bool CManualMotionCtlDlg::GetDoubleFromEditBox(const CString str, float &output)
 		return true;
 
 }
+
+bool CManualMotionCtlDlg::GetIntFromEditBox(const CString str, int &output)
+{
+	    if ( str.GetLength() == 0)
+	    {
+		  return false;
+	    }
+	
+	    const size_t newsizea = (str.GetLength() + 1);
+		char *nstringa = new char[newsizea];
+		strcpy_s(nstringa, newsizea, str);
+		output = atoi(nstringa);
+		delete [] nstringa;
+		return true;
+
+}
+
+
+
 void CManualMotionCtlDlg::OnBnClickedCommand()
 {
 
@@ -114,9 +149,9 @@ void CManualMotionCtlDlg::OnTimer(UINT_PTR nIDEvent)
 
 	if (nIDEvent == 1)
 	{
-		int nCompleteBitAddress=424977-SERIAL_MODBUS_OFFSET;
-		int nCaptureAddress = 400301-SERIAL_MODBUS_OFFSET;
-		int nZCaptureAddress = 429273 - SERIAL_MODBUS_OFFSET;
+		int nCompleteBitAddress=m_nCompleteAddress-SERIAL_MODBUS_OFFSET;
+		int nCaptureAddress = m_nCaptureAddress-SERIAL_MODBUS_OFFSET;
+		int nZCaptureAddress = m_nZAddress - SERIAL_MODBUS_OFFSET;
 		short capture;
 		float z_value;
 		switch (m_MotionCtl.ReadSingleStep( nCompleteBitAddress,  nCaptureAddress,  nZCaptureAddress, capture, z_value))
@@ -149,7 +184,70 @@ void CManualMotionCtlDlg::OnBnClickedButton1()
 	UpdateData();
 	CString str;
 
+
+
+	GetDlgItem(IDC_PORT)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nPort))
+	{
+		AfxMessageBox("wrong port value");
+		return;
+	}
 	
+	
+
+	GetDlgItem(IDC_BAUDRATE)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nBaudrate))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_STARTADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nStartAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	
+	GetDlgItem(IDC_COMPLETEADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nCompleteAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+			
+	GetDlgItem(IDC_CAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nCaptureAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+
+	GetDlgItem(IDC_ZADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nZAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_SEGNUMADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nSegNumAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_PROFILEADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nProfileAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	
+
 	float fspeed,facc,fdece,fpos,fjerk;
 
 	m_Acceleration.GetWindowTextA(str);
@@ -197,9 +295,9 @@ void CManualMotionCtlDlg::OnBnClickedButton1()
 	//AfxMessageBox(str);
 
 	m_MotionCtl.SetSegNum(m_nMotionSegIndex);
-    m_MotionCtl.WriteSegNum(400300-SERIAL_MODBUS_OFFSET);
-	m_MotionCtl.WriteProfile(400200-SERIAL_MODBUS_OFFSET);
-	m_MotionCtl.WriteSingleStepStart(424976-SERIAL_MODBUS_OFFSET);
+    m_MotionCtl.WriteSegNum(m_nSegNumAddress-SERIAL_MODBUS_OFFSET);
+	m_MotionCtl.WriteProfile(m_nProfileAddress-SERIAL_MODBUS_OFFSET);
+	m_MotionCtl.WriteSingleStepStart(m_nStartAddress-SERIAL_MODBUS_OFFSET);
 	
 	CString str1 = "started single movemente:";
 
@@ -211,7 +309,7 @@ void CManualMotionCtlDlg::OnBnClickedButton1()
 	short *captureH = new short[len];
 
 	//m_MotionCtl.m_Modbus.ModbusReadDSOneByOne(9,9200*2,400200-SERIAL_MODBUS_OFFSET,len,captureH);
-	m_MotionCtl.m_Modbus.ModbusReadDSOneByOne(9,9200*2,424976-SERIAL_MODBUS_OFFSET,len,captureH);
+	//m_MotionCtl.m_Modbus.ModbusReadDSOneByOne(9,9200*2,424976-SERIAL_MODBUS_OFFSET,len,captureH);
 
 	SetTimer(1,100,NULL);
 }

@@ -12,7 +12,7 @@ public:
 	CManualMotionCtlDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CManualMotionCtlDlg();
 	bool GetDoubleFromEditBox(const CString str, float &output);
-
+	bool CManualMotionCtlDlg::GetIntFromEditBox(const CString str, int &output);
 // Dialog Data
 	enum { IDD = IDD_MODBUD_DLG };
 
@@ -44,4 +44,13 @@ public:
 	afx_msg void OnBnClickedSinglestepstart();
 	afx_msg void OnBnClickedSinglestep();
 	afx_msg void OnBnClickedButton1();
+
+	int m_nSegNumAddress;
+	int m_nStartAddress;
+	int m_nCompleteAddress;
+	int m_nCaptureAddress;
+	int m_nZAddress;
+	int m_nProfileAddress;
+
+
 };

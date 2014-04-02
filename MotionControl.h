@@ -24,6 +24,10 @@ public:
 	void WriteProfile( unsigned short nProfileMBAddress);
 	void WriteSegNum(unsigned short nSegNumMBAddress);
 	int ReadSingleStep(unsigned short nCompleteBitAddress, unsigned short nCaptureAddress, unsigned short nZCaptureAddress, short& capture, float& z_value);
+
+	int m_nPort;
+	int m_nBaudrate;
+
 	
 //private:
 public:
