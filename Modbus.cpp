@@ -29,7 +29,7 @@ bool CModbus::Open(int nPort, int baudRate )
                 {
                     if(!sp.Open(nPort,baudRate))
 					{
-						AfxMessageBox("CanNOt open serial port6");
+						AfxMessageBox("CanNOt open serial port");
 						return false;
 
 					}
@@ -147,6 +147,58 @@ void CModbus::GetResponse(byte* response, int nLength)
         }
 
 
+bool CModbus::SendFc3NoCRC(byte address, unsigned short start, unsigned short registers,  short* values)
+{
+	//Ensure port is open:
+            if (sp.IsOpened())
+            {
+                //Clear in/out buffers:
+                
+                //Function 3 request is always 8 bytes:
+                byte message[8];
+                //Function 3 response buffer:
+				int response_length = 5 + 2 * registers;
+                byte* response = new byte[response_length];
+                //Build outgoing modbus message:
+                BuildMessage(address, (byte)3, start, registers, message,8);
+                //Send modbus message to Serial Port:
+                try
+                {
+					int bytewritten = sp.SendData((char*) message, 8);
+					Sleep(50);
+                    GetResponse(response,5 + 2 * registers);
+                }
+                catch (exception err)
+                {
+                    modbusStatus = "Error in read event";
+                    return false;
+                }
+                //Evaluate message:
+				//if (CheckResponse(response,response_length))
+                {
+                    //Return requested register values:
+                    for (int i = 0; i < (response_length - 5) / 2; i++)
+                    {
+                        values[i] = response[2 * i + 3];
+                        values[i] <<= 8;
+                        values[i] += response[2 * i + 4];
+                    }
+                    modbusStatus = "Read successful";
+                    return true;
+                }
+                           
+				delete [] response;
+			
+			}
+            else
+            {
+                modbusStatus = "Serial port not open";
+                return false;
+            }
+}
+
+
+
 bool CModbus::SendFc3(byte address, unsigned short start, unsigned short registers,  short* values)
 {
 	//Ensure port is open:
@@ -202,6 +254,59 @@ bool CModbus::SendFc3(byte address, unsigned short start, unsigned short registe
             }
 }
 
+bool CModbus::SendFc16NoResponse(byte address, unsigned short start, unsigned short registers, short* values)
+        {
+            //Ensure port is open:
+            if (sp.IsOpened())
+            {
+              
+                //Message is 1 addr + 1 fcn + 2 start + 2 reg + 1 count + 2 * reg vals + 2 CRC
+                int nLength = 9 + 2 * registers;
+
+				byte* message = new byte[9 + 2 * registers];
+                //Function 16 response is fixed at 8 bytes
+                byte response[8];
+                //Add bytecount to message:
+                message[6] = (byte)(registers * 2);
+                //Put write values into message prior to sending:
+                for (int i = 0; i < registers; i++)
+                {
+                    message[7 + 2 * i] = (byte)(values[i] >> 8);
+                    message[8 + 2 * i] = (byte)(values[i]);
+                }
+                //Build outgoing message:
+                BuildMessage(address, (byte)16, start, registers, message,nLength);
+                
+                //Send Modbus message to Serial Port:
+                try
+                {
+					sp.SendData((char*) message,nLength);
+				
+                }
+                catch (exception err)
+                {
+                    modbusStatus = "Error in write event: ";
+                    return false;
+                }
+                //Evaluate message:
+                if (CheckResponse(response,8))
+                {
+                    modbusStatus = "Write successful";
+                    return true;
+                }
+                else
+                {
+                    modbusStatus = "CRC error";
+                    return false;
+                }
+            }
+            else
+            {
+                modbusStatus = "Serial port not open";
+                return false;
+            }
+        
+ }
 
 bool CModbus::SendFc16(byte address, unsigned short start, unsigned short registers, short* values)
         {
@@ -230,6 +335,7 @@ bool CModbus::SendFc16(byte address, unsigned short start, unsigned short regist
                 try
                 {
 					sp.SendData((char*) message,nLength);
+					Sleep(100);
 					GetResponse(response,8);
                 }
                 catch (exception err)
@@ -298,6 +404,72 @@ void CModbus::ConvertBytesToFloat(int pollLength,short*values, float* readvalues
                     }
 
 	}
+
+
+bool CModbus::ModbusReadDSMultipleNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values)
+{
+	if (Open(nPort,baudRate)) 
+	{
+		
+		SendFc3NoCRC(1,pollStart,pollLength,values);
+
+	    Close();
+		return true;
+	}
+	else
+	{
+		modbusStatus = ("can not open serial port");
+		return false;
+	}
+
+}
+
+
+bool CModbus::ModbusReadDSOneByOneNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values)
+{
+	if (Open(nPort,baudRate)) 
+	{
+		int ncount =0;
+
+		for( int i=0 ;i<pollLength;i++)
+		{
+			short value;
+			 try
+			  {
+			    while (!SendFc3NoCRC(1,pollStart+i,1,values+i))
+				   {
+					   Sleep(50);
+					   ncount++;
+					   if (ncount > 100)
+						   break;
+				   }
+			  }
+			 catch(exception err)
+				{
+					modbusStatus =("Error in read");
+					return false;
+				}
+
+				 if (ncount > 100)
+				 {
+						modbusStatus =("Something is wrong. Error in send > 100 times");
+						Close();
+						return false;
+				 }
+			
+			
+		}
+        Close();
+		return true;
+	}
+	else
+	{
+		modbusStatus = ("can not open serial port");
+		return false;
+	}
+
+}
+
 
 bool CModbus::ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values)
 {
@@ -400,6 +572,35 @@ bool CModbus::ModbusReadDSOneByOne( unsigned short pollStart, unsigned short pol
 }
 
 
+bool CModbus::ModbusWriteDSNoResponse(int nPort, int baudRate,unsigned short reg_start, short value)
+{
+	if (Open(nPort,baudRate)) 
+	{
+		  try
+		  {
+			  //const clock_t begin_time = clock(); 
+			   SendFc16NoResponse(1,reg_start,1,&value);
+
+			  //float elaps = clock() - begin_time;
+			 // int a = 1;
+			  
+		  }
+	     catch(exception err)
+            {
+                modbusStatus =("Error in read");
+				Close();
+				return false;
+            }
+	 Close();
+	 return true;
+  }
+else
+	{
+		modbusStatus = ("can not open serial port");
+		return false;
+	}
+}
+
 
 bool CModbus::ModbusWriteDS(int nPort, int baudRate,unsigned short reg_start, short value)
 {
@@ -420,6 +621,7 @@ bool CModbus::ModbusWriteDS(int nPort, int baudRate,unsigned short reg_start, sh
 	     catch(exception err)
             {
                 modbusStatus =("Error in read");
+				Close();
 				return false;
             }
 
@@ -594,4 +796,33 @@ bool CModbus::ModbusReadFloat(unsigned short pollStart, unsigned short Length,fl
 		return false;
 	}
 
+}
+
+bool CModbus::ModbusWriteMutipleDSNoResponse(int nPort, int baudRate,unsigned short reg_start, short* value)
+{
+	if (Open(nPort,baudRate)) 
+	{
+		  try
+		  {
+			  //const clock_t begin_time = clock(); 
+			   SendFc16NoResponse(1,reg_start,1,value);
+
+			  //float elaps = clock() - begin_time;
+			 // int a = 1;
+			  
+		  }
+	     catch(exception err)
+            {
+                modbusStatus =("Error in read");
+				Close();
+				return false;
+            }
+	 Close();
+	 return true;
+  }
+else
+	{
+		modbusStatus = ("can not open serial port");
+		return false;
+	}
 }

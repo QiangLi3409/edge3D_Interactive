@@ -25,6 +25,8 @@ public:
 	void WriteSegNum(unsigned short nSegNumMBAddress);
 	int ReadSingleStep(unsigned short nCompleteBitAddress, unsigned short nCaptureAddress, unsigned short nZCaptureAddress, short& capture, float& z_value);
 
+	void Reset(unsigned short nSegNumMBAddress,unsigned short nStartBitAddress);
+
 	int m_nPort;
 	int m_nBaudrate;
 

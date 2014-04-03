@@ -35,7 +35,7 @@ public:
 	CEdit m_Acceleration;
 	CEdit m_Deceleration;
 	CEdit m_Position;
-	CEdit m_AccJerk;
+	CEdit m_Jerk;
 
 	CMotionControl m_MotionCtl;
 	
@@ -53,4 +53,5 @@ public:
 	int m_nProfileAddress;
 
 
+	afx_msg void OnBnClickedReset();
 };
