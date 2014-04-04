@@ -78,12 +78,12 @@ void CMotionControl::WriteSingleStepStart(unsigned short nStartBitAddress)
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 		
 }
-#define PROFILR_NUM 8
+#define PROFILE_NUM 8
 
 void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
 {
 	
-	m_nMBBaseAdress = nProfileMBAddress + PROFILR_NUM*m_nSegNum;
+	m_nMBBaseAdress = nProfileMBAddress + PROFILE_NUM*m_nSegNum;
 	short posH,posL,velH,velL,acc,dec,jerk;
 	acc = (short) m_fAcc;
 	dec = (short) m_fDece;
@@ -94,17 +94,17 @@ void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
 	velL = (short) ((int)m_fSpeed%1000);
 	short addr = m_nMBBaseAdress;
 
-	short* profile = new short[PROFILR_NUM];
+	short* profile = new short[PROFILE_NUM];
 
 	profile[0]=posH;profile[1]=posL;profile[2]=velH;profile[3]=velL;profile[4]=acc;profile[5]=dec;profile[6]=0;profile[7]=jerk;
 
-	if ( !m_Modbus.ModbusWriteMutipleDSNoResponse(m_nPort,m_nBaudrate,addr,profile))
+	if ( !m_Modbus.ModbusWriteMutipleDSNoResponse(m_nPort,m_nBaudrate,addr,PROFILE_NUM,profile))
 		{
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 	}
-
-
-	/*if ( !m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,posH) ||
+	// need to dealy
+	Sleep(200);
+/*	if ( !m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,posH) ||
 	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,posL) ||
 	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,velH) ||
 	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,velL) ||
@@ -195,7 +195,7 @@ int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned 
 
 		// reset move complete
 		short addr = m_nMBBaseAdress;
-		if(!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr,0))
+		if(!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr,0))
 			return 3;
 		return 0;
 	}

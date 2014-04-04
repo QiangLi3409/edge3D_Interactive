@@ -798,14 +798,14 @@ bool CModbus::ModbusReadFloat(unsigned short pollStart, unsigned short Length,fl
 
 }
 
-bool CModbus::ModbusWriteMutipleDSNoResponse(int nPort, int baudRate,unsigned short reg_start, short* value)
+bool CModbus::ModbusWriteMutipleDSNoResponse(int nPort, int baudRate,unsigned short reg_start, unsigned short  writeLength, short* value)
 {
 	if (Open(nPort,baudRate)) 
 	{
 		  try
 		  {
 			  //const clock_t begin_time = clock(); 
-			   SendFc16NoResponse(1,reg_start,1,value);
+			   SendFc16NoResponse(1,reg_start,writeLength,value);
 
 			  //float elaps = clock() - begin_time;
 			 // int a = 1;

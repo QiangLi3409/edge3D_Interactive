@@ -47,6 +47,7 @@ BEGIN_MESSAGE_MAP(CManualMotionCtlDlg, CDialogEx)
 
 	ON_BN_CLICKED(IDC_BUTTON1, &CManualMotionCtlDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_RESET, &CManualMotionCtlDlg::OnBnClickedReset)
+	ON_BN_CLICKED(IDC_MOVE_SEQUENCE, &CManualMotionCtlDlg::OnBnClickedMoveSequence)
 END_MESSAGE_MAP()
 
 
@@ -161,12 +162,14 @@ void CManualMotionCtlDlg::OnTimer(UINT_PTR nIDEvent)
 		int nCaptureAddress = m_nCaptureAddress-SERIAL_MODBUS_OFFSET;
 		int nZCaptureAddress = m_nZAddress - SERIAL_MODBUS_OFFSET;
 		short capture;
-		float z_value;
+		float z_value;CString str;
 		switch (m_MotionCtl.ReadSingleStep( nCompleteBitAddress,  nCaptureAddress,  nZCaptureAddress, capture, z_value))
 		{
 		case 0:
 			KillTimer(1);
-			AfxMessageBox("read OK");
+			
+			str.Format("Read Z:%3.2f Ok",z_value);
+			AfxMessageBox(str);
 			break;
 		case 1:
 			break;
@@ -298,13 +301,18 @@ void CManualMotionCtlDlg::OnBnClickedButton1()
 		return;
 	}
 	
+	
+	str.Format("Motion seg:%d acceleration:%3.2f speed:%3.2f deceleration:%3.2f position:%3.2f jerk:%3.2f ",m_nMotionSegIndex, fspeed,facc,fdece,fpos,fjerk);
+	//AfxMessageBox(str);
+
+	OneSegMentMove( m_nMotionSegIndex, fspeed, facc, fdece, fpos, fjerk);
+
+/*
 	m_MotionCtl.SetAcc(facc);
 	m_MotionCtl.SetDece(fdece);
 	m_MotionCtl.SetJerk(fjerk);
 	m_MotionCtl.SetPos(fpos);
 	m_MotionCtl.SetSpeed(fspeed);
-	str.Format("Motion seg:%d acceleration:%3.2f speed:%3.2f deceleration:%3.2f position:%3.2f jerk:%3.2f ",m_nMotionSegIndex, fspeed,facc,fdece,fpos,fjerk);
-	//AfxMessageBox(str);
 	
 	m_MotionCtl.SetSegNum(m_nMotionSegIndex);
 
@@ -331,7 +339,8 @@ void CManualMotionCtlDlg::OnBnClickedButton1()
 	//m_MotionCtl.m_Modbus.ModbusReadDSOneByOne(7,9200*2,400200-SERIAL_MODBUS_OFFSET,len,captureH);
 	//m_MotionCtl.m_Modbus.ModbusReadDSOneByOne(7,9200*2,424976-SERIAL_MODBUS_OFFSET,len,captureH);
 
-	//SetTimer(1,100,NULL);
+	SetTimer(1,100,NULL);
+	*/
 }
 
 
@@ -368,4 +377,197 @@ void CManualMotionCtlDlg::OnBnClickedReset()
 	}
 	m_MotionCtl.Reset(m_nSegNumAddress-SERIAL_MODBUS_OFFSET,m_nStartAddress-SERIAL_MODBUS_OFFSET);
 	GetDlgItem(IDC_STATUS)->SetWindowText("Reset");
+}
+
+void CManualMotionCtlDlg::OneSegMentMove(int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk)
+{
+	m_MotionSeg.SetCurSel(nSeg-1);
+	
+	CString str;
+
+
+	str.Format("%4.2f",facc);
+	m_Acceleration.SetWindowTextA(str);
+	str.Format("%4.2f",fspeed);
+    m_Speed.SetWindowTextA(str);
+	str.Format("%4.2f",fdece);
+    m_Deceleration.SetWindowTextA(str);
+	str.Format("%4.2f",fpos);
+	m_Position.SetWindowTextA(str);
+	str.Format("%4.2f",fjerk);
+	m_Jerk.SetWindowTextA(str);
+	
+	
+	m_MotionCtl.SetAcc(facc);
+	m_MotionCtl.SetDece(fdece);
+	m_MotionCtl.SetJerk(fjerk);
+	m_MotionCtl.SetPos(fpos);
+	m_MotionCtl.SetSpeed(fspeed);
+	str.Format("Motion seg:%d speed:%3.2f acceleration:%3.2f deceleration:%3.2f position:%3.2f jerk:%3.2f ",nSeg, fspeed,facc,fdece,fpos,fjerk);
+
+	m_MotionCtl.SetSegNum(nSeg);
+
+	 m_MotionCtl.WriteProfile(m_nProfileAddress-SERIAL_MODBUS_OFFSET);
+	
+	m_MotionCtl.WriteSegNum(m_nSegNumAddress-SERIAL_MODBUS_OFFSET);
+	
+	m_MotionCtl.WriteSingleStepStart(m_nStartAddress-SERIAL_MODBUS_OFFSET);
+
+	Sleep(500);
+
+	CString str1;
+		
+	str1.Format("Seg %d start",nSeg);
+
+	str1 = str1 + str;
+	
+	GetDlgItem(IDC_STATUS)->SetWindowText(str1);
+
+	UpdateData(false);
+
+	//SetTimer(1,100,NULL);
+
+	int nCompleteBitAddress=m_nCompleteAddress-SERIAL_MODBUS_OFFSET;
+	int nCaptureAddress = m_nCaptureAddress-SERIAL_MODBUS_OFFSET;
+	int nZCaptureAddress = m_nZAddress - SERIAL_MODBUS_OFFSET;
+	short capture;
+	float z_value = -1.;
+	// read capture and z value 
+	while (1)
+	{
+		int result = m_MotionCtl.ReadSingleStep( nCompleteBitAddress,  nCaptureAddress,  nZCaptureAddress, capture, z_value);
+
+		if (result == 0) {str.Format("Seg %d, sucessful capture:%d z:%3.2f",nSeg,capture,z_value); break;}
+
+		if (result == 2) {str.Format("Seg %d, error capture vlaue 0XFFFF",nSeg); AfxMessageBox(str); break;}
+
+		if (result == 3) {str.Format("Seg %d, error Modbus",nSeg); AfxMessageBox(str);break;}
+
+		if (result ==1 ) {str.Format("Seg %d waiting for complete",nSeg);GetDlgItem(IDC_STATUS)->SetWindowText(str);	UpdateData(false);}
+
+	}
+		
+	GetDlgItem(IDC_STATUS)->SetWindowText(str);	UpdateData(false);
+
+}
+void CManualMotionCtlDlg::OnBnClickedMoveSequence()
+{
+	// TODO: Add your control notification handler code here
+
+    UpdateData();
+	CString str;
+	GetDlgItem(IDC_PORT)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nPort))
+	{
+		AfxMessageBox("wrong port value");
+		return;
+	}
+	
+	GetDlgItem(IDC_BAUDRATE)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nBaudrate))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_STARTADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nStartAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	
+	GetDlgItem(IDC_COMPLETEADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nCompleteAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+			
+	GetDlgItem(IDC_CAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nCaptureAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+
+	GetDlgItem(IDC_ZADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nZAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_SEGNUMADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nSegNumAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_PROFILEADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nProfileAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	
+
+	// This are address 
+
+	float fspeed,facc,fdece,fjerk;
+
+	m_Acceleration.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, facc))
+	{
+		AfxMessageBox("wrong acceleration value");
+		return;
+	}
+	  
+    m_Speed.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fspeed))
+	{
+		AfxMessageBox("wrong speed value");
+		return;
+	}
+
+    m_Deceleration.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fdece))
+	{
+		AfxMessageBox("wrong deceleration value");
+		return;
+	}
+
+
+	m_Jerk.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fjerk))
+	{
+		AfxMessageBox("wrong jerk value");
+		return;
+	}
+	
+	int nSeg = 1;
+
+	float pos[2];
+	pos[0] = 5000;
+	pos[1] = 0;
+
+	for ( nSeg = 1; nSeg < 16; nSeg++)
+	{
+		if ( nSeg == 11)
+			int a = 1;
+	 
+		fspeed = 500 + (nSeg-1) * 200.;
+
+		if ((nSeg-1)%2 == 0) 
+			OneSegMentMove( nSeg, fspeed, facc, fdece, pos[0], fjerk);
+		else
+			OneSegMentMove( nSeg, fspeed, facc, fdece, pos[1], fjerk);
+
+		
+	}
+	
 }

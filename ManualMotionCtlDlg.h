@@ -13,6 +13,10 @@ public:
 	virtual ~CManualMotionCtlDlg();
 	bool GetDoubleFromEditBox(const CString str, float &output);
 	bool CManualMotionCtlDlg::GetIntFromEditBox(const CString str, int &output);
+
+	void OneSegMentMove(int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk);
+
+
 // Dialog Data
 	enum { IDD = IDD_MODBUD_DLG };
 
@@ -54,4 +58,5 @@ public:
 
 
 	afx_msg void OnBnClickedReset();
+	afx_msg void OnBnClickedMoveSequence();
 };
