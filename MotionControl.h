@@ -21,6 +21,9 @@ public:
 	void CloseModubus();
 	void Start(unsigned short nStartBitAddress);
 	void WriteSingleStepStart(unsigned short nStartBitAddress);
+
+	void Write0ToStart(unsigned short nStartBitAddress);
+
 	void WriteProfile( unsigned short nProfileMBAddress);
 	void WriteSegNum(unsigned short nSegNumMBAddress);
 

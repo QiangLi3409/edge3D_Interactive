@@ -53,6 +53,9 @@ public:
 	bool SendFc3NoCRC(byte address, unsigned short start, unsigned short registers, short* values);
 	bool ModbusReadDSOneByOneNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values);
 	bool ModbusReadDSMultipleNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values);
+	bool ModbusReadFloatNoCRC( unsigned short pollStart, unsigned short Length,float* fvalues);
+
+	bool ModbusReadFloatNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short Length,float* fvalues);
 	
 
 };

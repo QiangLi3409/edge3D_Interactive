@@ -740,6 +740,52 @@ bool CModbus::ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart,
 
 }
 
+bool CModbus::ModbusReadFloatNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short Length,float* fvalues)
+{
+	
+	if (Open(nPort,baudRate))
+	{
+		  // length of register to read
+		  unsigned short pollLength = Length*2;
+
+		  short* values = new short[pollLength];
+		  int ncount = 0;
+
+		  for( int i=0 ;i<pollLength/2;i++)
+
+		  {
+			  	  
+			  short onefloat[2];
+
+			  
+			  try
+				  {
+					   SendFc3NoCRC(1,pollStart+i*2,2,onefloat);
+					   Sleep(100);
+					
+
+
+				  }
+				 catch(exception err)
+					{
+						modbusStatus = ("Error in read");
+						return false;
+					}
+
+
+				  ConvertBytesToFloat(2,onefloat,fvalues+i);
+		  }
+		  delete [] values;
+    	  Close();
+          return true;
+	}
+	else
+	{
+		modbusStatus = ("can not open serial port");
+		return false;
+	}
+
+}
 
 bool CModbus::ModbusReadFloat(unsigned short pollStart, unsigned short Length,float* fvalues)
 {
