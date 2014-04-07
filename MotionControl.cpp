@@ -80,6 +80,41 @@ void CMotionControl::WriteSingleStepStart(unsigned short nStartBitAddress)
 }
 #define PROFILE_NUM 8
 
+void CMotionControl::WriteModubsAll(unsigned short nSegNumMBAddress,unsigned short nProfileMBAddress,unsigned short nStartBitAddress,float fAcc, float fDece, float fPos, float fSpeed, float fJerk )
+{
+	if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nSegNumMBAddress,(short)m_nSegNum+1))
+		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
+
+	m_nMBBaseAdress = nProfileMBAddress + PROFILE_NUM*m_nSegNum;
+	short posH,posL,velH,velL,acc,dec,jerk;
+	acc = (short) fAcc;
+	dec = (short) fDece;
+	jerk = (short) fJerk;
+	posH = (short) ((int)fPos/1000);
+	posL = (short) ((int)fPos%1000);
+	velH = (short) ((int)fSpeed/1000);
+	velL = (short) ((int)fSpeed%1000);
+	short addr = m_nMBBaseAdress;
+
+	short* profile = new short[PROFILE_NUM];
+
+	profile[0]=posH;profile[1]=posL;profile[2]=velH;profile[3]=velL;profile[4]=acc;profile[5]=dec;profile[6]=0;profile[7]=jerk;
+
+	if ( !m_Modbus.ModbusWriteMutipleDSNoResponse(m_nPort,m_nBaudrate,addr,PROFILE_NUM,profile))
+		{
+		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
+	}
+	// need to dealy
+
+
+	short value = 0x0001 << m_nSegNum;
+	//if (!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,nStartBitAddress,value))
+	if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nStartBitAddress,value))
+		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
+
+		Sleep(500);
+}
+
 void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
 {
 	
@@ -170,14 +205,22 @@ int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned 
 
 	short* captureMB = new short[2];
 			
-	if (!m_Modbus.ModbusReadDSOneByOne(m_nPort,m_nBaudrate,nCompleteBitAddress,1,value))
+	if (!m_Modbus.ModbusReadDSOneByOneNoCRC(m_nPort,m_nBaudrate,nCompleteBitAddress,1,value))
 		AfxMessageBox(m_Modbus.modbusStatus.c_str());
+
+	//	if (!m_Modbus.ModbusReadDSOneByOne(m_nPort,m_nBaudrate,nCompleteBitAddress,1,value))
+	//	AfxMessageBox(m_Modbus.modbusStatus.c_str());
+	if (*value < 0)
+		return 1;
 
 	if( *value & (0x0001 << m_nSegNum))
 	{
 		pollstart = nCaptureAddress + m_nSegNum*2;
-		if (!m_Modbus.ModbusReadDSOneByOne(m_nPort,m_nBaudrate,pollstart,2,captureMB))
+
+				if (!m_Modbus.ModbusReadDSOneByOneNoCRC(m_nPort,m_nBaudrate,pollstart,2,captureMB))
 		{return 3;}
+	//	if (!m_Modbus.ModbusReadDSOneByOne(m_nPort,m_nBaudrate,pollstart,2,captureMB))
+	//	{return 3;}
 		// read capture
 		short val = captureMB[0]*1000+captureMB[1];
 
@@ -194,9 +237,9 @@ int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned 
 			return 3;
 
 		// reset move complete
-		short addr = m_nMBBaseAdress;
-		if(!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr,0))
-			return 3;
+		//short addr = m_nMBBaseAdress;
+		//if(!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr,0))
+		//	return 3;
 		return 0;
 	}
 	return 1;

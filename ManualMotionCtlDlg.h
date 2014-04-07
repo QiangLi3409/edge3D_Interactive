@@ -18,6 +18,7 @@ public:
 	
 	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAddr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nCaptureAddr, int nZAddr );
 
+	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nCaptureAddr, int nZAddr );
 
 // Dialog Data
 	enum { IDD = IDD_MODBUD_DLG };
@@ -74,4 +75,6 @@ public:
 	afx_msg void OnSelchangeYMotionSeg();
 	afx_msg void OnBnClickedResetY();
 	afx_msg void OnBnClickedButton2();
+	afx_msg void OnBnClickedTestMove();
+	afx_msg void OnBnClickedRestall();
 };
