@@ -126,7 +126,7 @@ void CMotionControl::WriteModubsAll(unsigned short nSegNumMBAddress,unsigned sho
 	if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nStartBitAddress,value))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 		
-
+	delete [] profile;
 }
 
 void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
@@ -210,14 +210,9 @@ void CMotionControl::WriteSegNum(unsigned short nSegNumAddress)
 int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned short nCaptureAddress,unsigned short nZCaptureAddress,short& capture, float& z_value)
 {
 	
-
 	unsigned short pollstart = nCompleteBitAddress;
-
-
-
-	short* value = new short[1];
-
-	short* captureMB = new short[2];
+	short value[1] ; //= new short[1];
+    short captureMB[2]; // = new short[2];
 			
 	if (!m_Modbus.ModbusReadDSOneByOneNoCRC(m_nPort,m_nBaudrate,nCompleteBitAddress,1,value))
 		AfxMessageBox(m_Modbus.modbusStatus.c_str());
@@ -228,9 +223,11 @@ int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned 
 
 	if( *value & (0x0001 << m_nSegNum))
 	{
+		
+		return 0;
 		pollstart = nCaptureAddress + m_nSegNum*2;
 
-				if (!m_Modbus.ModbusReadDSOneByOneNoCRC(m_nPort,m_nBaudrate,pollstart,2,captureMB))
+		if (!m_Modbus.ModbusReadDSOneByOneNoCRC(m_nPort,m_nBaudrate,pollstart,2,captureMB))
 		{return 3;}
 	//	if (!m_Modbus.ModbusReadDSOneByOne(m_nPort,m_nBaudrate,pollstart,2,captureMB))
 	//	{return 3;}

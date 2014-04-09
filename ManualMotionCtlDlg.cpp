@@ -879,6 +879,8 @@ if( fileDlg.DoModal ()==IDOK )
 	CString m_strPathname = fileDlg.GetPathName();
 	strcpy_s(filename,200,m_strPathname);
 }
+else
+	return;
 
 	int nLength = 0;
 	
@@ -1081,14 +1083,13 @@ void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float
 	while (1)
 	{
 		int resultx = m_MotionCtl.ReadSingleStep( nXCompleteAddr-SERIAL_MODBUS_OFFSET,  nCaptureAddr-SERIAL_MODBUS_OFFSET,  nZAddr-SERIAL_MODBUS_OFFSET, capture, z_value);
-
 		int resulty = m_MotionCtl.ReadSingleStep( nYCompleteAddr-SERIAL_MODBUS_OFFSET,  nCaptureAddr-SERIAL_MODBUS_OFFSET,  nZAddr-SERIAL_MODBUS_OFFSET, capture, z_value);
 
 
 		if (resultx == 0 && resulty == 0) 
 		{
-			str.Format("Seg %d, sucessful capture:%d z:%3.2f",nSeg,capture,z_value); break;
-			m_MotionCtl.Write0ToStart(nXStartAddr);m_MotionCtl.Write0ToStart(nYStartAddr);
+			str.Format("Seg %d, sucessful capture:%d z:%3.2f",nSeg,capture,z_value); 
+			m_MotionCtl.Write0ToStart(nXStartAddr);m_MotionCtl.Write0ToStart(nYStartAddr);break;
 
 		}
 
@@ -1100,15 +1101,13 @@ void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float
 
 		if (resulty == 3) {str.Format("Seg %d, Y error Modbus",nSeg); AfxMessageBox(str);break;}
 
-
-
 		if (resultx ==1 || resulty == 1 ) {str.Format("Seg %d waiting for complete",nSeg);
 		
-		GetDlgItem(IDC_STATUS)->SetWindowText(str);	UpdateData(false);}
+		}
 
 	}
 		
-
+	GetDlgItem(IDC_STATUS)->SetWindowText(str);	UpdateData(false);
 }
 
 void CManualMotionCtlDlg::OnBnClickedRestall()

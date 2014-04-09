@@ -299,12 +299,15 @@ bool CModbus::SendFc16NoResponse(byte address, unsigned short start, unsigned sh
                     modbusStatus = "CRC error";
                     return false;
                 }
+				delete [] message;
             }
             else
             {
                 modbusStatus = "Serial port not open";
                 return false;
             }
+
+			
         
  }
 
@@ -354,7 +357,8 @@ bool CModbus::SendFc16(byte address, unsigned short start, unsigned short regist
                     modbusStatus = "CRC error";
                     return false;
                 }
-            }
+            delete [] message;
+			}
             else
             {
                 modbusStatus = "Serial port not open";
@@ -436,13 +440,8 @@ bool CModbus::ModbusReadDSOneByOneNoCRC(int nPort, int baudRate, unsigned short 
 			short value;
 			 try
 			  {
-			    while (!SendFc3NoCRC(1,pollStart+i,1,values+i))
-				   {
-					   Sleep(50);
-					   ncount++;
-					   if (ncount > 100)
-						   break;
-				   }
+			    !SendFc3NoCRC(1,pollStart+i,1,values+i);
+				
 			  }
 			 catch(exception err)
 				{
@@ -450,13 +449,7 @@ bool CModbus::ModbusReadDSOneByOneNoCRC(int nPort, int baudRate, unsigned short 
 					return false;
 				}
 
-				 if (ncount > 100)
-				 {
-						modbusStatus =("Something is wrong. Error in send > 100 times");
-						Close();
-						return false;
-				 }
-			
+						
 			
 		}
         Close();
