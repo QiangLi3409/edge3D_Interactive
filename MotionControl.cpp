@@ -7,7 +7,7 @@ CMotionControl::CMotionControl(void)
 
 	//OpenModbus( 9, 9600*2);
 	m_nPort = 9;
-	m_nBaudrate = 19200;
+	m_nBaudrate = 9600;
 
 }
 
@@ -185,14 +185,14 @@ void CMotionControl::Reset(unsigned short nSegNumMBAddress,unsigned short nStart
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 	if (!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,nStartBitAddress,0))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));*/
-	const clock_t begin_time = clock();
+	//const clock_t begin_time = clock();
 	if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nSegNumMBAddress,0))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 	
 
-	if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nStartBitAddress,0))
-		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
-	float elaps = clock() - begin_time;
+	//if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nStartBitAddress,0))
+	//	AfxMessageBox((m_Modbus.modbusStatus.c_str()));
+	//float elaps = clock() - begin_time;
 
 }
 
@@ -224,11 +224,13 @@ int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned 
 	if( *value & (0x0001 << m_nSegNum))
 	{
 		
-		return 0;
+	
 		pollstart = nCaptureAddress + m_nSegNum*2;
 
-		if (!m_Modbus.ModbusReadDSOneByOneNoCRC(m_nPort,m_nBaudrate,pollstart,2,captureMB))
+		if (!m_Modbus.ModbusReadDSMultipleNoCRC(m_nPort,m_nBaudrate,pollstart,2,captureMB))
 		{return 3;}
+		
+	
 	//	if (!m_Modbus.ModbusReadDSOneByOne(m_nPort,m_nBaudrate,pollstart,2,captureMB))
 	//	{return 3;}
 

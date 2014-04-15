@@ -138,11 +138,21 @@ void CModbus::GetResponse(byte* response, int nLength)
             //There is a bug in .Net 2.0 DataReceived Event that prevents people from using this
             //event as an interrupt to handle data (it doesn't fire all of the time).  Therefore
             //we have to use the ReadByte command for a fixed length as it's been shown to be reliable.
-            for (int i = 0; i < nLength; i++)
+
+
+			int index =0 ;
+			while(1)
             {
-				sp.ReadData( response+i,1);
+				if ( sp.ReadDataWaiting() == nLength)
+				{
+					sp.ReadData( response,nLength);
+					break;
+				}
 				//response[i] = (byte)(sp.ReadByte());
             }
+
+
+	
 
         }
 
@@ -159,22 +169,32 @@ bool CModbus::SendFc3NoCRC(byte address, unsigned short start, unsigned short re
                 //Function 3 response buffer:
 				int response_length = 5 + 2 * registers;
                 byte* response = new byte[response_length];
+
+				response[response_length-1] = response[response_length-2] = 255;
                 //Build outgoing modbus message:
                 BuildMessage(address, (byte)3, start, registers, message,8);
                 //Send modbus message to Serial Port:
                 try
                 {
-					int bytewritten = sp.SendData((char*) message, 8);
-					Sleep(50);
-                    GetResponse(response,5 + 2 * registers);
-                }
+				 CTime t1;
+	             clock_t begin_time = clock();
+				 int bytewritten = sp.SendData((char*) message, 8);
+				 float elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
+				
+				 //Sleep(40);
+                 begin_time = clock();
+	             GetResponse(response,5 + 2 * registers);
+    			  elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
+				 int a = 1;
+   	
+				}
                 catch (exception err)
                 {
                     modbusStatus = "Error in read event";
                     return false;
                 }
                 //Evaluate message:
-				//if (CheckResponse(response,response_length))
+				if (CheckResponse(response,response_length))
                 {
                     //Return requested register values:
                     for (int i = 0; i < (response_length - 5) / 2; i++)
@@ -186,6 +206,11 @@ bool CModbus::SendFc3NoCRC(byte address, unsigned short start, unsigned short re
                     modbusStatus = "Read successful";
                     return true;
                 }
+				else
+				{
+					   modbusStatus = "CRC error ";
+					return false;
+				}
                            
 				delete [] response;
 			
@@ -266,7 +291,8 @@ bool CModbus::SendFc16NoResponse(byte address, unsigned short start, unsigned sh
 				byte* message = new byte[9 + 2 * registers];
                 //Function 16 response is fixed at 8 bytes
                 byte response[8];
-                //Add bytecount to message:
+
+		        //Add bytecount to message:
                 message[6] = (byte)(registers * 2);
                 //Put write values into message prior to sending:
                 for (int i = 0; i < registers; i++)
@@ -280,7 +306,21 @@ bool CModbus::SendFc16NoResponse(byte address, unsigned short start, unsigned sh
                 //Send Modbus message to Serial Port:
                 try
                 {
-					sp.SendData((char*) message,nLength);
+
+						CTime t1;
+	             clock_t begin_time = clock();
+  				sp.SendData((char*) message,nLength);
+				 float elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
+	
+				  float total = elapse_time;
+					begin_time = clock();
+					GetResponse(response,8);
+
+					 total += float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
+
+				 int a = 1;
+	
+			    
 				
                 }
                 catch (exception err)
@@ -440,7 +480,8 @@ bool CModbus::ModbusReadDSOneByOneNoCRC(int nPort, int baudRate, unsigned short 
 			short value;
 			 try
 			  {
-			    !SendFc3NoCRC(1,pollStart+i,1,values+i);
+			    if (!SendFc3NoCRC(1,pollStart+i,1,values+i))
+					return false;
 				
 			  }
 			 catch(exception err)
@@ -572,7 +613,11 @@ bool CModbus::ModbusWriteDSNoResponse(int nPort, int baudRate,unsigned short reg
 		  try
 		  {
 			  //const clock_t begin_time = clock(); 
-			   SendFc16NoResponse(1,reg_start,1,&value);
+			 // short values[2];
+			 // values[0]= value;
+			 // values[1] = 0;
+			 if(! SendFc16NoResponse(1,reg_start,1,&value))
+				 return false;
 
 			  //float elaps = clock() - begin_time;
 			 // int a = 1;

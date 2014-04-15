@@ -54,6 +54,7 @@ BEGIN_MESSAGE_MAP(CManualMotionCtlDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON2, &CManualMotionCtlDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_TEST_MOVE, &CManualMotionCtlDlg::OnBnClickedTestMove)
 	ON_BN_CLICKED(IDC_RESTALL, &CManualMotionCtlDlg::OnBnClickedRestall)
+
 END_MESSAGE_MAP()
 
 
@@ -81,8 +82,8 @@ BOOL CManualMotionCtlDlg::OnInitDialog()
 
 
 
-	GetDlgItem(IDC_PORT)->SetWindowTextA("7");
-	GetDlgItem(IDC_BAUDRATE)->SetWindowTextA("19200");
+	GetDlgItem(IDC_PORT)->SetWindowTextA("4");
+	GetDlgItem(IDC_BAUDRATE)->SetWindowTextA("38400");
 	GetDlgItem(IDC_STARTADDRESS)->SetWindowTextA("424976");
 	GetDlgItem(IDC_CAPTUREADDRESS)->SetWindowTextA("400301");
 	GetDlgItem(IDC_ZADDRESS)->SetWindowTextA("429273");
@@ -393,8 +394,13 @@ void CManualMotionCtlDlg::OnBnClickedReset()
 		AfxMessageBox("wrong baudrate value");
 		return;
 	}
-	m_MotionCtl.Reset(m_nSegNumAddress-SERIAL_MODBUS_OFFSET,m_nStartAddress-SERIAL_MODBUS_OFFSET);
-	GetDlgItem(IDC_STATUS)->SetWindowText("Reset X");
+	for ( int i=0 ; i< 100 ;i++)
+	{
+		m_MotionCtl.Reset(m_nSegNumAddress-SERIAL_MODBUS_OFFSET,m_nStartAddress-SERIAL_MODBUS_OFFSET);
+		CString temp;
+		temp.Format("Reste X %d",i);
+    	GetDlgItem(IDC_STATUS)->SetWindowText(temp);
+	}
 }
 
 void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAdrr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nCaptureAddr, int nZAddr)
@@ -417,7 +423,6 @@ void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float
 	
 	MotionCtl.WriteSingleStepStart(nStartAddr-SERIAL_MODBUS_OFFSET);
 
-	Sleep(500);
 
 	CString str1;
 		
@@ -1115,4 +1120,52 @@ void CManualMotionCtlDlg::OnBnClickedRestall()
 	// TODO: Add your control notification handler code here
 	OnBnClickedReset();
 		OnBnClickedResetY();
+}
+
+
+void CManualMotionCtlDlg::OnBnClickedWriteTest()
+{
+	// TODO: Add your control notification handler code here
+
+		// TODO: Add your control notification handler code here
+	CString str;
+
+		GetDlgItem(IDC_SEGNUMADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nSegNumAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	GetDlgItem(IDC_PORT)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nPort))
+	{
+		AfxMessageBox("wrong port value");
+		return;
+	}
+	
+	
+	GetDlgItem(IDC_BAUDRATE)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nBaudrate))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	GetDlgItem(IDC_STARTADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nStartAddress))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	m_MotionCtl.Reset(m_nSegNumAddress-SERIAL_MODBUS_OFFSET,m_nStartAddress-SERIAL_MODBUS_OFFSET);
+
+	GetDlgItem(IDC_STATUS)->SetWindowText("Reset X");
+
+
+}
+
+
+void CManualMotionCtlDlg::OnBnClickedReadTest()
+{
+	// TODO: Add your control notification handler code here
+
 }

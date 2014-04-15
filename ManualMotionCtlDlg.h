@@ -77,4 +77,6 @@ public:
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedTestMove();
 	afx_msg void OnBnClickedRestall();
+	afx_msg void OnBnClickedWriteTest();
+	afx_msg void OnBnClickedReadTest();
 };

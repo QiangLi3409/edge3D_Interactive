@@ -34,9 +34,6 @@ private:
 public:
 	bool SendFc16(byte address, unsigned short start, unsigned short registers, short* values);
 	bool SendFc3(byte address, unsigned short start, unsigned short registers, short* values);
-	bool SendFc16(byte address, unsigned short start, float a);
-   // bool SendFc16();
-	//bool SendFc3();
     void ConvertBytesToFloat(int pollLength,short*values, float* readvalues);
 	bool ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart, unsigned short Length,float* fvalues);
 	bool ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength,short* values);
