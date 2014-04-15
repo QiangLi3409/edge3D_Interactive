@@ -181,7 +181,7 @@ bool CModbus::SendFc3NoCRC(byte address, unsigned short start, unsigned short re
 				 int bytewritten = sp.SendData((char*) message, 8);
 				 float elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
 				
-				 //Sleep(40);
+		
                  begin_time = clock();
 	             GetResponse(response,5 + 2 * registers);
     			  elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
@@ -242,7 +242,7 @@ bool CModbus::SendFc3(byte address, unsigned short start, unsigned short registe
                 try
                 {
 					int bytewritten = sp.SendData((char*) message, 8);
-					Sleep(500);
+				
                     GetResponse(response,5 + 2 * registers);
                 }
                 catch (exception err)
@@ -378,7 +378,7 @@ bool CModbus::SendFc16(byte address, unsigned short start, unsigned short regist
                 try
                 {
 					sp.SendData((char*) message,nLength);
-					Sleep(100);
+			
 					GetResponse(response,8);
                 }
                 catch (exception err)
@@ -523,7 +523,7 @@ bool CModbus::ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollS
 			  {
 			    while (!SendFc3(1,pollStart+i,1,values+i))
 				   {
-					   Sleep(50);
+				
 					   ncount++;
 					   if (ncount > 100)
 						   break;
@@ -574,7 +574,7 @@ bool CModbus::ModbusReadDSOneByOne( unsigned short pollStart, unsigned short pol
 			  {
 			    while (!SendFc3(1,pollStart+i,1,values+i))
 				   {
-					   Sleep(100);
+					
 					   ncount++;
 					   if (ncount > 100)
 						   break;
@@ -650,7 +650,7 @@ bool CModbus::ModbusWriteDS(int nPort, int baudRate,unsigned short reg_start, sh
 		  {
 			   while (! SendFc16(1,reg_start,1,&value))
 			   {
-				   Sleep(100);
+				
 				   ncount ++;
 				   if (ncount > 100)
 					   break;
@@ -691,7 +691,7 @@ bool CModbus::ModbusWriteDS(unsigned short reg_start, short value)
 		  {
 			   while (! SendFc16(1,reg_start,1,&value))
 			   {
-				   Sleep(100);
+				 
 				   ncount ++;
 				   if (ncount > 100)
 					   break;
@@ -743,7 +743,7 @@ bool CModbus::ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart,
 				  {
 					   while (!SendFc3(1,pollStart+i*2,2,onefloat))
 					   {
-						   Sleep(100);
+						 
 						   ncount ++;
 						   if (ncount > 100)
 							   break;
@@ -799,7 +799,7 @@ bool CModbus::ModbusReadFloatNoCRC(int nPort, int baudRate, unsigned short pollS
 			  try
 				  {
 					   SendFc3NoCRC(1,pollStart+i*2,2,onefloat);
-					   Sleep(100);
+					 
 					
 
 
@@ -847,7 +847,7 @@ bool CModbus::ModbusReadFloat(unsigned short pollStart, unsigned short Length,fl
 				  {
 					   while (!SendFc3(1,pollStart+i*2,2,onefloat))
 					   {
-						   Sleep(100);
+						
 						   ncount ++;
 						   if (ncount > 100)
 							   break;

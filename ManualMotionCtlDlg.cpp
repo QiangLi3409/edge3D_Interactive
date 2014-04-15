@@ -394,7 +394,7 @@ void CManualMotionCtlDlg::OnBnClickedReset()
 		AfxMessageBox("wrong baudrate value");
 		return;
 	}
-	for ( int i=0 ; i< 100 ;i++)
+	for ( int i=0 ; i< 1 ;i++)
 	{
 		m_MotionCtl.Reset(m_nSegNumAddress-SERIAL_MODBUS_OFFSET,m_nStartAddress-SERIAL_MODBUS_OFFSET);
 		CString temp;
@@ -496,7 +496,7 @@ void CManualMotionCtlDlg::OneSegMentMove(int nSeg,float fspeed,float facc,float 
 	
 	m_MotionCtl.WriteSingleStepStart(m_nStartAddress-SERIAL_MODBUS_OFFSET);
 
-	Sleep(500);
+
 
 	CString str1;
 		
@@ -1037,7 +1037,7 @@ else
 		float x = X_pos[j];
 		float y = Y_pos[j];
 		
-		OneSegMentMove(m_MotionCtl, j+1, fspeed, facc, fdece, x,y, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nCaptureAddr, nZAddr );
+		OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x,y, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nCaptureAddr, nZAddr );
 			
 		//CString temp;
 		//temp.Format("seg %d x:%d y:%d",j+1,x,y);
@@ -1094,7 +1094,7 @@ void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float
 		if (resultx == 0 && resulty == 0) 
 		{
 			str.Format("Seg %d, sucessful capture:%d z:%3.2f",nSeg,capture,z_value); 
-			m_MotionCtl.Write0ToStart(nXStartAddr);m_MotionCtl.Write0ToStart(nYStartAddr);break;
+			break;
 
 		}
 

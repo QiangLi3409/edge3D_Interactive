@@ -109,20 +109,20 @@ void CMotionControl::WriteModubsAll(unsigned short nSegNumMBAddress,unsigned sho
 	}
 	// need to dealy
 
-		Sleep(200);
+	
 
 		if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nSegNumMBAddress,0))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 
-		Sleep(50);
+	    
 
 		if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nSegNumMBAddress,(short)m_nSegNum+1))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 
-		Sleep(200);
 
 	short value = 0x0001 << m_nSegNum;
 	//if (!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,nStartBitAddress,value))
+
 	if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nStartBitAddress,value))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 		
@@ -152,7 +152,7 @@ void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 	}
 	// need to dealy
-	Sleep(200);
+	
 /*	if ( !m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,posH) ||
 	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,posL) ||
 	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,velH) ||
@@ -190,8 +190,8 @@ void CMotionControl::Reset(unsigned short nSegNumMBAddress,unsigned short nStart
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 	
 
-	//if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nStartBitAddress,0))
-	//	AfxMessageBox((m_Modbus.modbusStatus.c_str()));
+	if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nStartBitAddress,0))
+		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 	//float elaps = clock() - begin_time;
 
 }
@@ -223,7 +223,10 @@ int CMotionControl::ReadSingleStep(unsigned short nCompleteBitAddress, unsigned 
 
 	if( *value & (0x0001 << m_nSegNum))
 	{
-		
+		return 0;
+
+		// do not need to read capture and Z for each seg 
+		// read all when it is done
 	
 		pollstart = nCaptureAddress + m_nSegNum*2;
 
