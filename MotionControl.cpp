@@ -77,7 +77,6 @@ void CMotionControl::Write0ToStart(unsigned short nStartBitAddress)
 void CMotionControl::WriteSingleStepStart(unsigned short nStartBitAddress)
 {
 	short value = 0x0001 << m_nSegNum;
-	//if (!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,nStartBitAddress,value))
 	if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nStartBitAddress,value))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 		
@@ -151,29 +150,10 @@ void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
 		{
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 	}
+
+	delete [] profile;
 	// need to dealy
 	
-/*	if ( !m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,posH) ||
-	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,posL) ||
-	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,velH) ||
-	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,velL) ||
-	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,acc)  ||
-	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,addr++,dec)  ||
-	!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,++addr,jerk))
-	{
-		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
-	}*/
-
-	/*if ( !m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,posH) ||
-	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,posL) ||
-	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,velH) ||
-	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,velL) ||
-	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,acc)  ||
-	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,addr++,dec)  ||
-	!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,++addr,jerk))
-	{
-		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
-	}*/
 	
 }
 
@@ -199,8 +179,9 @@ void CMotionControl::Reset(unsigned short nSegNumMBAddress,unsigned short nStart
 void CMotionControl::WriteSegNum(unsigned short nSegNumAddress)
 {
 	// m_nSegNum is 0 but in modbus is 1
-	//if (!m_Modbus.ModbusWriteDS(m_nPort,m_nBaudrate,nSegNumAddress,(short)m_nSegNum+1))
-	//	AfxMessageBox((m_Modbus.modbusStatus.c_str()));
+
+		if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nSegNumAddress,0))
+		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
 
 		if (!m_Modbus.ModbusWriteDSNoResponse(m_nPort,m_nBaudrate,nSegNumAddress,(short)m_nSegNum+1))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));

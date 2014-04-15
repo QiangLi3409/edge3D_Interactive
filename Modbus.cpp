@@ -889,7 +889,8 @@ bool CModbus::ModbusWriteMutipleDSNoResponse(int nPort, int baudRate,unsigned sh
 		  try
 		  {
 			  //const clock_t begin_time = clock(); 
-			   SendFc16NoResponse(1,reg_start,writeLength,value);
+			   if (!SendFc16NoResponse(1,reg_start,writeLength,value))
+				   return false;
 
 			  //float elaps = clock() - begin_time;
 			 // int a = 1;

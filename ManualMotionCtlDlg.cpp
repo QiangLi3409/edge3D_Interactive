@@ -417,11 +417,29 @@ void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float
 
 	MotionCtl.SetSegNum(nSeg);
 
+	CTime t1;float elapse_time;
+	clock_t begin_time = clock();
 	MotionCtl.WriteProfile(nProfileAddr-SERIAL_MODBUS_OFFSET);
-	
+	elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
+    begin_time = clock();
+
 	MotionCtl.WriteSegNum(nSegNumAdrr-SERIAL_MODBUS_OFFSET);
+	elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
+    begin_time = clock();
+
 	
 	MotionCtl.WriteSingleStepStart(nStartAddr-SERIAL_MODBUS_OFFSET);
+    elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
+    begin_time = clock();
+
+	str.Format("seg %d write to start time %3.2f",nSeg,elapse_time);
+
+	GetDlgItem(IDC_STATUS)->SetWindowTextA(str);
+
+
+	// this is needed because it will alway give false complete 
+	Sleep(60);
+	
 
 
 	CString str1;
@@ -1031,14 +1049,22 @@ else
 		return;
 	}
 	//str = "done";
+
+	int prevx, prevy ;
+	prevx = prevy = 0;
+
 	for ( int j=0 ;j < nLength; j++)
 	{
 
 		float x = X_pos[j];
 		float y = Y_pos[j];
 		
-		OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x,y, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nCaptureAddr, nZAddr );
-			
+		//OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x,y, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nCaptureAddr, nZAddr );
+		
+		OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nCaptureAddr, nZAddr);
+		OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nCaptureAddr, nZAddr );
+
+
 		//CString temp;
 		//temp.Format("seg %d x:%d y:%d",j+1,x,y);
 		//str.Append(temp);
@@ -1048,7 +1074,8 @@ else
 
 	}
 
-
+	delete [] X_pos;
+	delete [] Y_pos;
 	
 
 	
@@ -1073,6 +1100,7 @@ void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float
 	m_MotionCtl.WriteModubsAll(nXSegNumAddr-SERIAL_MODBUS_OFFSET,nXProfileAddr-SERIAL_MODBUS_OFFSET,nXStartAddr-SERIAL_MODBUS_OFFSET, facc,  fdece,  fXpos,  fspeed,  fjerk );
 	m_MotionCtl.WriteModubsAll(nYSegNumAddr-SERIAL_MODBUS_OFFSET,nYProfileAddr-SERIAL_MODBUS_OFFSET,nYStartAddr-SERIAL_MODBUS_OFFSET, facc,  fdece,  fYpos,  fspeed,  fjerk );
 	
+		Sleep(60);
 	CString str;
 	str.Format("started motion:%d x:%4.2f y:%4.2f ",nSeg, fXpos,fYpos);
 
