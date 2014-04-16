@@ -29,7 +29,7 @@ public:
 
 	void WriteModubsAll(unsigned short nSegNumMBAddress,unsigned short nProfileMBAddress,unsigned short nStartBitAddress,float fAcc, float fDece, float fPos, float fSpeed, float fJerk );
 
-	int ReadSingleStep(unsigned short nCompleteBitAddress, unsigned short nCaptureAddress, unsigned short nZCaptureAddress, short& capture, float& z_value);
+	int ReadSingleStep(unsigned short nCompleteBitAddress, unsigned short nXCaptureAddress, unsigned short nZCaptureAddress, short& capture, float& z_value);
 
 	void Reset(unsigned short nSegNumMBAddress,unsigned short nStartBitAddress);
 

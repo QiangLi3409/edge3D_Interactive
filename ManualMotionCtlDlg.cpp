@@ -85,16 +85,18 @@ BOOL CManualMotionCtlDlg::OnInitDialog()
 	GetDlgItem(IDC_PORT)->SetWindowTextA("4");
 	GetDlgItem(IDC_BAUDRATE)->SetWindowTextA("38400");
 	GetDlgItem(IDC_STARTADDRESS)->SetWindowTextA("424976");
-	GetDlgItem(IDC_CAPTUREADDRESS)->SetWindowTextA("400301");
-	GetDlgItem(IDC_ZADDRESS)->SetWindowTextA("429273");
+	GetDlgItem(IDC_XCAPTUREADDRESS)->SetWindowTextA("429473");
+	GetDlgItem(IDC_YCAPTUREADDRESS)->SetWindowTextA("429503");
+	
+	GetDlgItem(IDC_ZADDRESS)->SetWindowTextA("429533");
 	GetDlgItem(IDC_COMPLETEADDRESS)->SetWindowTextA("424977");
 	GetDlgItem(IDC_SEGNUMADDRESS)->SetWindowTextA("404498");
 	GetDlgItem(IDC_PROFILEADDRESS)->SetWindowTextA("400200");
 	
 
-	GetDlgItem(IDC_SPEED)->SetWindowTextA("2000");
-	GetDlgItem(IDC_ACCELERATION)->SetWindowTextA("10");
-	GetDlgItem(IDC_DECELERATION)->SetWindowTextA("10");
+	GetDlgItem(IDC_SPEED)->SetWindowTextA("8000");
+	GetDlgItem(IDC_ACCELERATION)->SetWindowTextA("30");
+	GetDlgItem(IDC_DECELERATION)->SetWindowTextA("50");
 	GetDlgItem(IDC_JERK)->SetWindowTextA("0");
 	
 	GetDlgItem(IDC_Y_START_ADDRESS)->SetWindowTextA("424978");
@@ -174,12 +176,12 @@ void CManualMotionCtlDlg::OnTimer(UINT_PTR nIDEvent)
 	if (nIDEvent == 1)
 	{
 		int nCompleteBitAddress=m_nCompleteAddress-SERIAL_MODBUS_OFFSET;
-		int nCaptureAddress = m_nCaptureAddress-SERIAL_MODBUS_OFFSET;
+		int nXCaptureAddress = m_nXCaptureAddress-SERIAL_MODBUS_OFFSET;
 		int nZCaptureAddress = m_nZAddress - SERIAL_MODBUS_OFFSET;
 
 		short capture;
 		float z_value;CString str;
-		switch (m_MotionCtl.ReadSingleStep( nCompleteBitAddress,  nCaptureAddress,  nZCaptureAddress, capture, z_value))
+		switch (m_MotionCtl.ReadSingleStep( nCompleteBitAddress,  nXCaptureAddress,  nZCaptureAddress, capture, z_value))
 		{
 		case 0:
 			KillTimer(1);
@@ -252,8 +254,8 @@ void CManualMotionCtlDlg::OnBnClickedButton1()
 	}
 
 			
-	GetDlgItem(IDC_CAPTUREADDRESS)->GetWindowTextA(str);
-	if (!GetIntFromEditBox(str, m_nCaptureAddress))
+	GetDlgItem(IDC_XCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nXCaptureAddress))
 	{
 		AfxMessageBox("wrong baudrate value");
 		return;
@@ -403,7 +405,7 @@ void CManualMotionCtlDlg::OnBnClickedReset()
 	}
 }
 
-void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAdrr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nCaptureAddr, int nZAddr)
+void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAdrr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nXCaptureAddr, int nZAddr)
 {
 	
 	CString str;
@@ -456,14 +458,14 @@ void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float
 
 	int nCompleteBitAddress=nCompleteAddr-SERIAL_MODBUS_OFFSET;
 
-	int nCaptureAddress = nCaptureAddr-SERIAL_MODBUS_OFFSET;
+	int nXCaptureAddress = nXCaptureAddr-SERIAL_MODBUS_OFFSET;
 	int nZCaptureAddress = nZAddr - SERIAL_MODBUS_OFFSET;
 	short capture;
 	float z_value = -1.;
 	// read capture and z value 
 	while (1)
 	{
-		int result = MotionCtl.ReadSingleStep( nCompleteBitAddress,  nCaptureAddress,  nZCaptureAddress, capture, z_value);
+		int result = MotionCtl.ReadSingleStep( nCompleteBitAddress,  nXCaptureAddress,  nZCaptureAddress, capture, z_value);
 
 		if (result == 0) {str.Format("Seg %d, sucessful capture:%d z:%3.2f",nSeg,capture,z_value); break;}
 
@@ -529,14 +531,14 @@ void CManualMotionCtlDlg::OneSegMentMove(int nSeg,float fspeed,float facc,float 
 	//SetTimer(1,100,NULL);
 
 	int nCompleteBitAddress=m_nCompleteAddress-SERIAL_MODBUS_OFFSET;
-	int nCaptureAddress = m_nCaptureAddress-SERIAL_MODBUS_OFFSET;
+	int nXCaptureAddress = m_nXCaptureAddress-SERIAL_MODBUS_OFFSET;
 	int nZCaptureAddress = m_nZAddress - SERIAL_MODBUS_OFFSET;
 	short capture;
 	float z_value = -1.;
 	// read capture and z value 
 	while (1)
 	{
-		int result = m_MotionCtl.ReadSingleStep( nCompleteBitAddress,  nCaptureAddress,  nZCaptureAddress, capture, z_value);
+		int result = m_MotionCtl.ReadSingleStep( nCompleteBitAddress,  nXCaptureAddress,  nZCaptureAddress, capture, z_value);
 
 		if (result == 0) {str.Format("Seg %d, sucessful capture:%d z:%3.2f",nSeg,capture,z_value); break;}
 
@@ -587,8 +589,8 @@ void CManualMotionCtlDlg::OnBnClickedMoveSequence()
 	}
 
 			
-	GetDlgItem(IDC_CAPTUREADDRESS)->GetWindowTextA(str);
-	if (!GetIntFromEditBox(str, m_nCaptureAddress))
+	GetDlgItem(IDC_XCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_nXCaptureAddress))
 	{
 		AfxMessageBox("wrong baudrate value");
 		return;
@@ -755,7 +757,7 @@ void CManualMotionCtlDlg::OnBnClickedButton2()
 		AfxMessageBox("wrong baudrate value");
 		return;
 	}
-	int nYStartAddr, nYCompleteAddr, nYSegNumAddr, nYProfileAddr, nCaptureAddr, nZAddr;
+	int nYStartAddr, nYCompleteAddr, nYSegNumAddr, nYProfileAddr, nXCaptureAddr, nZAddr;
 
 	GetDlgItem(IDC_Y_START_ADDRESS)->GetWindowTextA(str);
 	if (!GetIntFromEditBox(str, nYStartAddr))
@@ -773,8 +775,8 @@ void CManualMotionCtlDlg::OnBnClickedButton2()
 	}
 
 			
-	GetDlgItem(IDC_CAPTUREADDRESS)->GetWindowTextA(str);
-	if (!GetIntFromEditBox(str, nCaptureAddr))
+	GetDlgItem(IDC_XCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXCaptureAddr))
 	{
 		AfxMessageBox("wrong baudrate value");
 		return;
@@ -845,7 +847,7 @@ void CManualMotionCtlDlg::OnBnClickedButton2()
 	str.Format("Motion seg:%d acceleration:%3.2f speed:%3.2f deceleration:%3.2f position:%3.2f jerk:%3.2f ",m_nYMotionSegIndex, fspeed,facc,fdece,fpos,fjerk);
 	//AfxMessageBox(str);
 
-	OneSegMentMove(m_MotionCtl, m_nYMotionSegIndex, fspeed, facc, fdece, fpos, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nCaptureAddr, nZAddr );
+	OneSegMentMove(m_MotionCtl, m_nYMotionSegIndex, fspeed, facc, fdece, fpos, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
 
 
 /*
@@ -884,13 +886,14 @@ void CManualMotionCtlDlg::OnBnClickedButton2()
 	*/
 }
 
+#define MEASURE_OFFSET 500
 
 void CManualMotionCtlDlg::OnBnClickedTestMove()
 {
 	// TODO: Add your control notification handler code here
 	// TODO: Add your control notification handler code here
 	char filename[200];
-	char szFilters[]= "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";
+	char szFilters[]= "Ted Files (*.sp3)|*.sp3|Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";
 // Create an Open dialog; the default file name extension is ".my".
 CFileDialog fileDlg (TRUE, "txt", "*.txt",
       OFN_FILEMUSTEXIST| OFN_HIDEREADONLY, szFilters, this);
@@ -937,7 +940,7 @@ else
 	}
 
 	int nXStartAddr,nYStartAddr, nXCompleteAddr, nYCompleteAddr, nXProfileAddr, nYProfileAddr, nXSegNumAddr, nYSegNumAddr;
-	int nCaptureAddr, nZAddr;
+	int nXCaptureAddr,nYCaptureAddr, nZAddr;
 
 	UpdateData();
 
@@ -1002,13 +1005,19 @@ else
 	}
 
 			
-	GetDlgItem(IDC_CAPTUREADDRESS)->GetWindowTextA(str);
-	if (!GetIntFromEditBox(str, nCaptureAddr))
+	GetDlgItem(IDC_XCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXCaptureAddr))
 	{
 		AfxMessageBox("wrong baudrate value");
 		return;
 	}
 
+		GetDlgItem(IDC_YCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYCaptureAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
 
 	GetDlgItem(IDC_ZADDRESS)->GetWindowTextA(str);
 	if (!GetIntFromEditBox(str, nZAddr))
@@ -1050,29 +1059,136 @@ else
 	}
 	//str = "done";
 
-	int prevx, prevy ;
-	prevx = prevy = 0;
-
-	for ( int j=0 ;j < nLength; j++)
+	float centerx,centery;
+	centerx = centery = 0;
+	//nLength
+	for ( int j=0 ;j <nLength ; j++)
 	{
 
-		float x = X_pos[j];
-		float y = Y_pos[j];
+		float x = X_pos[j]/4.;
+		float y = Y_pos[j]/4.;
+		switch (j)
+		{
 		
-		//OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x,y, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nCaptureAddr, nZAddr );
+		case 1:
+			x = x - MEASURE_OFFSET;x = x<0?0:x;
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			break;
+		case 2:
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+			break;
+
+		case 3:
+			x = x + MEASURE_OFFSET;
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr);
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			break;
 		
-		OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nCaptureAddr, nZAddr);
-		OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nCaptureAddr, nZAddr );
-
-
-		//CString temp;
-		//temp.Format("seg %d x:%d y:%d",j+1,x,y);
-		//str.Append(temp);
+		case 4:
+		     OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			 OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		  
+			 break;
+		
+		case 5:
+			y= y + MEASURE_OFFSET;
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		
+			break;
+		case 6:
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			break;
+		case 7:
+			y = y -MEASURE_OFFSET;y = y<0?0:y;
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+			break;
+		default:
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		
 		
 
-
-
+		}
+	
 	}
+
+	// read capure and z value
+
+		float *xcapture, *ycapture, *zvalues;
+
+		xcapture = new float[nLength];
+		ycapture = new float[nLength];
+		zvalues = new float[nLength];
+
+		nXCaptureAddr -= SERIAL_MODBUS_OFFSET;
+		nYCaptureAddr -= SERIAL_MODBUS_OFFSET;
+		nZAddr -= SERIAL_MODBUS_OFFSET;
+
+		m_MotionCtl.m_Modbus.ModbusReadFloat(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nXCaptureAddr,nLength,xcapture);
+
+		m_MotionCtl.m_Modbus.ModbusReadFloat(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nYCaptureAddr,nLength,ycapture);
+
+		m_MotionCtl.m_Modbus.ModbusReadFloat(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nZAddr,nLength,zvalues);
+
+					
+		CString temp;
+		CListBox* list = (CListBox*) GetDlgItem(IDC_POS);
+
+		for( int i=0;i<nLength;i++)
+		{
+				temp.Format("seg %d x:%3.2f y:%3.2f z:%3.2f",i+1,xcapture[i],ycapture[i],zvalues[i]);
+		        list->AddString(temp);
+
+		}
+
+		// write the result file;
+
+		CFile	myFile;
+      if ( myFile.Open( _T("capture_z.txt"), CFile::modeCreate |   
+   CFile::modeReadWrite | CFile::modeNoTruncate ) )
+{
+    myFile.SeekToEnd();CString szBuffer;
+
+	CString t = CTime::GetCurrentTime().Format("%H:%M");
+    
+
+	
+	szBuffer.Append(t);
+	szBuffer.Append("\n");
+
+
+	CString temp;
+	temp.Format("X capture left: %6.4f\n",xcapture[1]);
+	szBuffer.Append(temp);
+
+	temp.Format("X capture left Z:%6.4f\n",zvalues[1]);
+	szBuffer.Append(temp);
+	temp.Format("X capture right: %6.4f\n",xcapture[3]);
+	szBuffer.Append(temp);
+	temp.Format("X capture left Z:%6.4f\n",zvalues[3]);
+	szBuffer.Append(temp);
+	temp.Format("Y capture up: %6.4f\n",ycapture[5]);
+	szBuffer.Append(temp);
+	temp.Format("Y capture up Z:%6.4f\n",zvalues[5]);
+	szBuffer.Append(temp);
+	temp.Format("Y capture down: %6.4f\n",ycapture[7]);
+	szBuffer.Append(temp);
+	temp.Format("Y capture down Z:%6.4f\n",zvalues[7]);
+	szBuffer.Append(temp);
+
+
+	myFile.Write(szBuffer.GetBuffer(szBuffer.GetLength()),szBuffer.GetLength());
+	
+		
+}
+	 myFile.Close();
+		
+	UpdateData(false);
 
 	delete [] X_pos;
 	delete [] Y_pos;
@@ -1082,7 +1198,7 @@ else
 }
 
 
-void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nCaptureAddr, int nZAddr )
+void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nXCaptureAddr, int nZAddr )
 
 {
 	
@@ -1115,8 +1231,8 @@ void CManualMotionCtlDlg::OneSegMentMove(CMotionControl MotionCtl,int nSeg,float
 	// read capture and z value 
 	while (1)
 	{
-		int resultx = m_MotionCtl.ReadSingleStep( nXCompleteAddr-SERIAL_MODBUS_OFFSET,  nCaptureAddr-SERIAL_MODBUS_OFFSET,  nZAddr-SERIAL_MODBUS_OFFSET, capture, z_value);
-		int resulty = m_MotionCtl.ReadSingleStep( nYCompleteAddr-SERIAL_MODBUS_OFFSET,  nCaptureAddr-SERIAL_MODBUS_OFFSET,  nZAddr-SERIAL_MODBUS_OFFSET, capture, z_value);
+		int resultx = m_MotionCtl.ReadSingleStep( nXCompleteAddr-SERIAL_MODBUS_OFFSET,  nXCaptureAddr-SERIAL_MODBUS_OFFSET,  nZAddr-SERIAL_MODBUS_OFFSET, capture, z_value);
+		int resulty = m_MotionCtl.ReadSingleStep( nYCompleteAddr-SERIAL_MODBUS_OFFSET,  nXCaptureAddr-SERIAL_MODBUS_OFFSET,  nZAddr-SERIAL_MODBUS_OFFSET, capture, z_value);
 
 
 		if (resultx == 0 && resulty == 0) 

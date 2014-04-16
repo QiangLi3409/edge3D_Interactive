@@ -176,16 +176,10 @@ bool CModbus::SendFc3NoCRC(byte address, unsigned short start, unsigned short re
                 //Send modbus message to Serial Port:
                 try
                 {
-				 CTime t1;
-	             clock_t begin_time = clock();
-				 int bytewritten = sp.SendData((char*) message, 8);
-				 float elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
 				
-		
-                 begin_time = clock();
-	             GetResponse(response,5 + 2 * registers);
-    			  elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
-				 int a = 1;
+				 int bytewritten = sp.SendData((char*) message, 8);
+				  GetResponse(response,5 + 2 * registers);
+    			
    	
 				}
                 catch (exception err)
@@ -307,20 +301,10 @@ bool CModbus::SendFc16NoResponse(byte address, unsigned short start, unsigned sh
                 try
                 {
 
-						CTime t1;
-	             clock_t begin_time = clock();
+					
   				sp.SendData((char*) message,nLength);
-				 float elapse_time = float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
-	
-				  float total = elapse_time;
-					begin_time = clock();
-					GetResponse(response,8);
-
-					 total += float( clock () - begin_time ) /  CLOCKS_PER_SEC*1000;
-
-				 int a = 1;
-	
-			    
+				delete [] message;
+				GetResponse(response,8);
 				
                 }
                 catch (exception err)
@@ -339,7 +323,7 @@ bool CModbus::SendFc16NoResponse(byte address, unsigned short start, unsigned sh
                     modbusStatus = "CRC error";
                     return false;
                 }
-				delete [] message;
+				
             }
             else
             {
@@ -407,7 +391,67 @@ bool CModbus::SendFc16(byte address, unsigned short start, unsigned short regist
         
  }
 
- 
+
+
+bool CModbus::SendFc6(byte address, unsigned short start, short value)
+        {
+            //Ensure port is open:
+            if (sp.IsOpened())
+            {
+              
+                
+
+				byte* message = new byte[8];
+                //Function 16 response is fixed at 8 bytes
+                byte response[8];
+          
+                //Put write values into message prior to sending:
+			
+
+				 byte CRC[2];
+
+            message[0] = address;
+            message[1] = 6;
+            message[2] = (byte)(start >> 8);
+            message[3] = (byte)start;
+   			message[4] = (byte)(value >> 8);
+			message[5] = (byte)(value);
+			GetCRC(message,8, CRC);
+            message[8 - 2] = CRC[0];
+            message[8 - 1] = CRC[1];
+           //Send Modbus message to Serial Port:
+                try
+                {
+					sp.SendData((char*) message,8);
+			
+					GetResponse(response,8);
+                }
+                catch (exception err)
+                {
+                    modbusStatus = "Error in write event: ";
+                    return false;
+                }
+                //Evaluate message:
+                if (CheckResponse(response,8))
+                {
+                    modbusStatus = "Write successful";
+                    return true;
+                }
+                else
+                {
+                    modbusStatus = "CRC error";
+                    return false;
+                }
+            delete [] message;
+			}
+            else
+            {
+                modbusStatus = "Serial port not open";
+                return false;
+            }
+        
+ }
+
 void CModbus::ConvertBytesToFloat(int pollLength,short*values, float* readvalues)
 	{
 
@@ -450,50 +494,15 @@ void CModbus::ConvertBytesToFloat(int pollLength,short*values, float* readvalues
 	}
 
 
-bool CModbus::ModbusReadDSMultipleNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values)
+bool CModbus::ModbusReadDSMultiple(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values)
 {
 	if (Open(nPort,baudRate)) 
 	{
 		
-		SendFc3NoCRC(1,pollStart,pollLength,values);
+		if (!SendFc3(1,pollStart,pollLength,values))
+			return false;
 
 	    Close();
-		return true;
-	}
-	else
-	{
-		modbusStatus = ("can not open serial port");
-		return false;
-	}
-
-}
-
-
-bool CModbus::ModbusReadDSOneByOneNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values)
-{
-	if (Open(nPort,baudRate)) 
-	{
-		int ncount =0;
-
-		for( int i=0 ;i<pollLength;i++)
-		{
-			short value;
-			 try
-			  {
-			    if (!SendFc3NoCRC(1,pollStart+i,1,values+i))
-					return false;
-				
-			  }
-			 catch(exception err)
-				{
-					modbusStatus =("Error in read");
-					return false;
-				}
-
-						
-			
-		}
-        Close();
 		return true;
 	}
 	else
@@ -509,11 +518,6 @@ bool CModbus::ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollS
 {
 	if (Open(nPort,baudRate)) 
 	{
-		  // start address
-		 // unsigned short pollStart=0;
-		  // length of register to read
-		//  unsigned short pollLength = 100;
-
 		int ncount =0;
 
 		for( int i=0 ;i<pollLength;i++)
@@ -521,13 +525,9 @@ bool CModbus::ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollS
 			short value;
 			 try
 			  {
-			    while (!SendFc3(1,pollStart+i,1,values+i))
-				   {
+			    if (!SendFc3(1,pollStart+i,1,values+i))
+					return false;
 				
-					   ncount++;
-					   if (ncount > 100)
-						   break;
-				   }
 			  }
 			 catch(exception err)
 				{
@@ -535,13 +535,7 @@ bool CModbus::ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollS
 					return false;
 				}
 
-				 if (ncount > 100)
-				 {
-						modbusStatus =("Something is wrong. Error in send > 100 times");
-						Close();
-						return false;
-				 }
-			
+						
 			
 		}
         Close();
@@ -556,57 +550,7 @@ bool CModbus::ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollS
 }
 
 
-bool CModbus::ModbusReadDSOneByOne( unsigned short pollStart, unsigned short pollLength, short* values)
-{
-	if (sp.IsOpened()) 
-	{
-		  // start address
-		 // unsigned short pollStart=0;
-		  // length of register to read
-		//  unsigned short pollLength = 100;
-
-		int ncount =0;
-
-		for( int i=0 ;i<pollLength;i++)
-		{
-			short value;
-			 try
-			  {
-			    while (!SendFc3(1,pollStart+i,1,values+i))
-				   {
-					
-					   ncount++;
-					   if (ncount > 100)
-						   break;
-				   }
-			  }
-			 catch(exception err)
-				{
-					modbusStatus =("Error in read");
-					return false;
-				}
-
-				 if (ncount > 100)
-				 {
-						modbusStatus =("Something is wrong. Error in send > 100 times");
-						
-						return false;
-				 }
-			
-			
-		}
-  		return true;
-	}
-	else
-	{
-		modbusStatus = ("can not open serial port");
-		return false;
-	}
-
-}
-
-
-bool CModbus::ModbusWriteDSNoResponse(int nPort, int baudRate,unsigned short reg_start, short value)
+bool CModbus::ModbusWriteOneDS(int nPort, int baudRate,unsigned short reg_start, short value)
 {
 	if (Open(nPort,baudRate)) 
 	{
@@ -616,7 +560,7 @@ bool CModbus::ModbusWriteDSNoResponse(int nPort, int baudRate,unsigned short reg
 			 // short values[2];
 			 // values[0]= value;
 			 // values[1] = 0;
-			 if(! SendFc16NoResponse(1,reg_start,1,&value))
+			 if(! SendFc16(1,reg_start,1,&value))
 				 return false;
 
 			  //float elaps = clock() - begin_time;
@@ -640,85 +584,6 @@ else
 }
 
 
-bool CModbus::ModbusWriteDS(int nPort, int baudRate,unsigned short reg_start, short value)
-{
-	int ncount = 0;
-
-	if (Open(nPort,baudRate)) 
-	{
-		  try
-		  {
-			   while (! SendFc16(1,reg_start,1,&value))
-			   {
-				
-				   ncount ++;
-				   if (ncount > 100)
-					   break;
-			   }
-		  }
-	     catch(exception err)
-            {
-                modbusStatus =("Error in read");
-				Close();
-				return false;
-            }
-
-		 if (ncount > 100)
-		 {
-			    modbusStatus = ("Something is wrong. Error in send > 100 times");
-				Close();
-				return false;
-		 }
-
-	 Close();
-	 return true;
-  }
-else
-	{
-		modbusStatus = ("can not open serial port");
-		return false;
-	}
-}
-
-
-bool CModbus::ModbusWriteDS(unsigned short reg_start, short value)
-{
-	int ncount = 0;
-
-	if (sp.IsOpened()) 
-	{
-		  try
-		  {
-			   while (! SendFc16(1,reg_start,1,&value))
-			   {
-				 
-				   ncount ++;
-				   if (ncount > 100)
-					   break;
-			   }
-		  }
-	     catch(exception err)
-            {
-                modbusStatus =("Error in read");
-				return false;
-            }
-
-		 if (ncount > 100)
-		 {
-			    modbusStatus = ("Something is wrong. Error in send > 100 times");
-			
-				return false;
-		 }
-
-	 return true;
-  }
-else
-	{
-		modbusStatus = ("can not open serial port");
-		return false;
-	}
-}
-
 
 
 bool CModbus::ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart, unsigned short Length,float* fvalues)
@@ -732,21 +597,19 @@ bool CModbus::ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart,
 		  short* values = new short[pollLength];
 		  int ncount = 0;
 
-		  for( int i=0 ;i<pollLength/2;i++)
+    //	  for( int i=0 ;i<pollLength/2;i++)
 
 		  {
 			  	  
-			  short onefloat[2];
+		//	  short onefloat[2];
 
 			  
 			  try
 				  {
-					   while (!SendFc3(1,pollStart+i*2,2,onefloat))
+					   if (!SendFc3(1,pollStart,pollLength,values))
 					   {
-						 
-						   ncount ++;
-						   if (ncount > 100)
-							   break;
+						   delete [] values;
+						   return false;
 					   }
 
 
@@ -754,18 +617,18 @@ bool CModbus::ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart,
 				 catch(exception err)
 					{
 						modbusStatus = ("Error in read");
+						delete [] values;
 						return false;
 					}
 
-				 if (ncount > 150)
-				 {
-						modbusStatus = ("Something is wrong. Error in send > 100 times");
-						Close();
-						return false ;
-				 }
 
-				  ConvertBytesToFloat(2,onefloat,fvalues+i);
+				  
 		  }
+
+
+		  ConvertBytesToFloat(pollLength,values,fvalues);
+		  
+
 		  delete [] values;
     	  Close();
           return true;
@@ -778,118 +641,15 @@ bool CModbus::ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart,
 
 }
 
-bool CModbus::ModbusReadFloatNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short Length,float* fvalues)
-{
-	
-	if (Open(nPort,baudRate))
-	{
-		  // length of register to read
-		  unsigned short pollLength = Length*2;
 
-		  short* values = new short[pollLength];
-		  int ncount = 0;
-
-		  for( int i=0 ;i<pollLength/2;i++)
-
-		  {
-			  	  
-			  short onefloat[2];
-
-			  
-			  try
-				  {
-					   SendFc3NoCRC(1,pollStart+i*2,2,onefloat);
-					 
-					
-
-
-				  }
-				 catch(exception err)
-					{
-						modbusStatus = ("Error in read");
-						return false;
-					}
-
-
-				  ConvertBytesToFloat(2,onefloat,fvalues+i);
-		  }
-		  delete [] values;
-    	  Close();
-          return true;
-	}
-	else
-	{
-		modbusStatus = ("can not open serial port");
-		return false;
-	}
-
-}
-
-bool CModbus::ModbusReadFloat(unsigned short pollStart, unsigned short Length,float* fvalues)
-{
-	
-	if (sp.IsOpened())
-	{
-		  // length of register to read
-		  unsigned short pollLength = Length*2;
-
-		  short* values = new short[pollLength];
-		  int ncount = 0;
-
-		  for( int i=0 ;i<pollLength/2;i++)
-
-		  {
-			  	  
-			  short onefloat[2];
-
-			  
-			  try
-				  {
-					   while (!SendFc3(1,pollStart+i*2,2,onefloat))
-					   {
-						
-						   ncount ++;
-						   if (ncount > 100)
-							   break;
-					   }
-
-
-				  }
-				 catch(exception err)
-					{
-						modbusStatus = ("Error in read");
-						return false;
-					}
-
-				 if (ncount > 150)
-				 {
-						modbusStatus = ("Something is wrong. Error in send > 100 times");
-					
-						return false ;
-				 }
-
-				  ConvertBytesToFloat(2,onefloat,fvalues+i);
-		  }
-		  delete [] values;
-  
-          return true;
-	}
-	else
-	{
-		modbusStatus = ("can not open serial port");
-		return false;
-	}
-
-}
-
-bool CModbus::ModbusWriteMutipleDSNoResponse(int nPort, int baudRate,unsigned short reg_start, unsigned short  writeLength, short* value)
+bool CModbus::ModbusWriteMutipleDS(int nPort, int baudRate,unsigned short reg_start, unsigned short  writeLength, short* value)
 {
 	if (Open(nPort,baudRate)) 
 	{
 		  try
 		  {
 			  //const clock_t begin_time = clock(); 
-			   if (!SendFc16NoResponse(1,reg_start,writeLength,value))
+			   if (!SendFc16(1,reg_start,writeLength,value))
 				   return false;
 
 			  //float elaps = clock() - begin_time;
@@ -911,3 +671,4 @@ else
 		return false;
 	}
 }
+

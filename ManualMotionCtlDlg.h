@@ -16,9 +16,9 @@ public:
 
 	void OneSegMentMove(int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk);
 	
-	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAddr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nCaptureAddr, int nZAddr );
+	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAddr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nXCaptureAddr, int nZAddr );
 
-	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nCaptureAddr, int nZAddr );
+	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nXCaptureAddr, int nZAddr );
 
 // Dialog Data
 	enum { IDD = IDD_MODBUD_DLG };
@@ -59,7 +59,7 @@ public:
 	int m_nSegNumAddress;
 	int m_nStartAddress;
 	int m_nCompleteAddress;
-	int m_nCaptureAddress;
+	int m_nXCaptureAddress;
 	int m_nZAddress;
 	
 

@@ -34,25 +34,21 @@ private:
 public:
 	bool SendFc16(byte address, unsigned short start, unsigned short registers, short* values);
 	bool SendFc3(byte address, unsigned short start, unsigned short registers, short* values);
+	bool SendFc6(byte address, unsigned short start, short value);
     void ConvertBytesToFloat(int pollLength,short*values, float* readvalues);
-	bool ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart, unsigned short Length,float* fvalues);
-	bool ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength,short* values);
-	bool ModbusWriteDS(int nPort, int baudRate,unsigned short reg_start, short value);
 
-	bool ModbusReadFloat( unsigned short pollStart, unsigned short Length,float* fvalues);
-	bool ModbusReadDSOneByOne( unsigned short pollStart, unsigned short pollLength,short* values);
-	bool ModbusWriteDS(unsigned  short reg_start, short value);
+	bool ModbusWriteOneDS(int nPort, int baudRate,unsigned short reg_start, short value);
 
-	bool ModbusWriteDSNoResponse(int nPort, int baudRate,unsigned short reg_start, short value);
-	bool ModbusWriteMutipleDSNoResponse(int nPort, int baudRate,unsigned short reg_start, unsigned short writeLength,  short* value);
+	bool ModbusWriteMutipleDS(int nPort, int baudRate,unsigned short reg_start, unsigned short writeLength,  short* value);
 
 	bool SendFc16NoResponse(byte address, unsigned short start, unsigned short registers, short* values);
 	bool SendFc3NoCRC(byte address, unsigned short start, unsigned short registers, short* values);
-	bool ModbusReadDSOneByOneNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values);
-	bool ModbusReadDSMultipleNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values);
-	bool ModbusReadFloatNoCRC( unsigned short pollStart, unsigned short Length,float* fvalues);
+	
+	bool ModbusReadDSOneByOne(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values);
+	bool ModbusReadDSMultiple(int nPort, int baudRate, unsigned short pollStart, unsigned short pollLength, short* values);
+	bool ModbusReadFloat( unsigned short pollStart, unsigned short Length,float* fvalues);
 
-	bool ModbusReadFloatNoCRC(int nPort, int baudRate, unsigned short pollStart, unsigned short Length,float* fvalues);
+	bool ModbusReadFloat(int nPort, int baudRate, unsigned short pollStart, unsigned short Length,float* fvalues);
 	
 
 };
