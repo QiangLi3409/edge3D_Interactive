@@ -53,7 +53,8 @@ BOOL CSerial::Open( int nPort, int nBaud )
 	GetCommState( m_hIDComDev, &dcb );
 	dcb.BaudRate = nBaud;
 	dcb.ByteSize = 8;
-	dcb.Parity = 0;
+	//dcb.Parity = 0;
+	dcb.Parity = 1;
 	dcb.StopBits = 0;
 
 	unsigned char ucSet;

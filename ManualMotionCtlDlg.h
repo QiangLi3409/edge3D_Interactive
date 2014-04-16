@@ -3,6 +3,7 @@
 #include "MotionControl.h"
 
 // CManualMotionCtlDlg dialog
+#define TIMER_CHECK_START_CYCLE 100
 
 class CManualMotionCtlDlg : public CDialogEx
 {
@@ -47,6 +48,7 @@ public:
 	CEdit m_Jerk;
 
 	CMotionControl m_MotionCtl;
+	short m_nStartCycle;
 
 	
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
@@ -79,4 +81,5 @@ public:
 	afx_msg void OnBnClickedRestall();
 	afx_msg void OnBnClickedWriteTest();
 	afx_msg void OnBnClickedReadTest();
+	afx_msg void OnBnClickedRunAbSequence();
 };
