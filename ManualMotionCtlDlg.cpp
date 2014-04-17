@@ -192,6 +192,8 @@ void CManualMotionCtlDlg::OnTimer(UINT_PTR nIDEvent)
 			return;
 		}
 		m_MotionCtl.m_Modbus.ModbusReadDSOneByOne(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,8,1,&m_nStartCycle);
+		if ( m_nStartCycle > 0)
+		  OnBnClickedRunAbSequence();
 	}
 
 	if (nIDEvent == 1)
@@ -907,7 +909,7 @@ void CManualMotionCtlDlg::OnBnClickedButton2()
 	*/
 }
 
-#define MEASURE_OFFSET 500
+#define MEASURE_OFFSET 650
 
 void CManualMotionCtlDlg::OnBnClickedTestMove()
 {
@@ -1337,16 +1339,15 @@ void CManualMotionCtlDlg::OnBnClickedReadTest()
 
 void CManualMotionCtlDlg::OnBnClickedRunAbSequence()
 {
-	
-	if (m_nStartCycle == 0) return;
-
-
 	KillTimer(TIMER_CHECK_START_CYCLE);
-
+	OnBnClickedRestall();
+	
 	int nLength = 0;
 	
 	FILE* fp;
     fp = fopen("C:\\data\\ABsequence.txt", "r");
+	//fp = fopen("C:\\data\\test_sequence.txt", "r");
+    
     fscanf(fp,"%d\n",&nLength);
 
 	
@@ -1509,13 +1510,77 @@ void CManualMotionCtlDlg::OnBnClickedRunAbSequence()
 	// write sequence num
 	nSequenceAddr -=  SERIAL_MODBUS_OFFSET;
 
-	m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nSequenceAddr,1);
+
+	int nSequenceNum = nLength/15 +1;
+
+	for(int i=0 ; i<nSequenceNum; i++ )
+	{
+		m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nSequenceAddr,i+1);
+
+		int start = i*15;
+
+		int end = (i+1)*15;
+
+		if( end > nLength) end = nLength;
+
+		for ( int j=start ;j <end ; j++)
+		{
+			float x = X_pos[j]/4.;
+		float y = Y_pos[j]/4.;
+		switch (j)
+		{
+		
+		case 1:
+			x = x - MEASURE_OFFSET;x = x<0?0:x;
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			break;
+		case 2:
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+			break;
+
+		case 3:
+			x = x + MEASURE_OFFSET;
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr);
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			break;
+		
+		case 4:
+		     OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			 OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		  
+			 break;
+		
+		case 5:
+			y= y + MEASURE_OFFSET;
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		
+			break;
+		case 6:
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			break;
+		case 7:
+			y = y -MEASURE_OFFSET;y = y<0?0:y;
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+			break;
+		default:
+		    OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+			OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+			}
+
+		}
+	}
+
 
 
 
 
 	//nLength
-	for ( int j=0 ;j <nLength ; j++)
+/*	for ( int j=0 ;j <nLength ; j++)
 	{
 
 		float x = X_pos[j]/4.;
@@ -1568,7 +1633,7 @@ void CManualMotionCtlDlg::OnBnClickedRunAbSequence()
 
 		}
 	
-	}
+	}*/
 
 	// read capure and z value
 
@@ -1589,7 +1654,7 @@ void CManualMotionCtlDlg::OnBnClickedRunAbSequence()
 		m_MotionCtl.m_Modbus.ModbusReadFloat(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nZAddr,nLength,zvalues);
 
 
-		// write sequence #
+		// reset sequence as 0
 
 		m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nSequenceAddr,0);
 
@@ -1617,9 +1682,13 @@ void CManualMotionCtlDlg::OnBnClickedRunAbSequence()
 	szBuffer.Append(t);
 	szBuffer.Append("\n");
 
-	szBuffer.Format("speed:%6.4f acce:%6.4f dece:%6.4f \n",fspeed, facc,fdece);
-
+	
 	CString temp;
+
+	temp.Format("speed:%6.4f acce:%6.4f dece:%6.4f \n",fspeed, facc,fdece);
+
+	szBuffer.Append(temp);
+
 	temp.Format("X capture left: %6.4f\n",xcapture[1]);
 	szBuffer.Append(temp);
 
@@ -1627,7 +1696,7 @@ void CManualMotionCtlDlg::OnBnClickedRunAbSequence()
 	szBuffer.Append(temp);
 	temp.Format("X capture right: %6.4f\n",xcapture[3]);
 	szBuffer.Append(temp);
-	temp.Format("X capture left Z:%6.4f\n",zvalues[3]);
+	temp.Format("X capture right Z:%6.4f\n",zvalues[3]);
 	szBuffer.Append(temp);
 	temp.Format("Y capture up: %6.4f\n",ycapture[5]);
 	szBuffer.Append(temp);
@@ -1637,6 +1706,26 @@ void CManualMotionCtlDlg::OnBnClickedRunAbSequence()
 	szBuffer.Append(temp);
 	temp.Format("Y capture down Z:%6.4f\n",zvalues[7]);
 	szBuffer.Append(temp);
+
+
+	temp.Format( "%6.4f %6.4f %6.4f\n",xcapture[1],-1.,zvalues[1]);
+	szBuffer.Append(temp);
+	temp.Format("%6.4f %6.4f %6.4f\n",xcapture[3],-1.,zvalues[3]);
+	szBuffer.Append(temp);
+	temp.Format("%6.4f %6.4f %6.4f\n",-1.,ycapture[5],zvalues[5]);
+	szBuffer.Append(temp);
+	temp.Format("%6.4f %6.4f %6.4f\n",-1.,ycapture[7],zvalues[7]);
+	szBuffer.Append(temp);
+
+
+	FILE* fp = fopen("C:\\data\\xyz.txt","w");
+	fprintf(fp,"%d\n",4);
+	fprintf(fp, "%6.4f %6.4f %6.4f\n",xcapture[1],-1.,zvalues[1]);
+	fprintf(fp, "%6.4f %6.4f %6.4f\n",xcapture[3],-1.,zvalues[3]);
+	fprintf(fp, "%6.4f %6.4f %6.4f\n",-1.,ycapture[5],zvalues[5]);
+	fprintf(fp, "%6.4f %6.4f %6.4f\n",-1.,ycapture[7],zvalues[7]);
+	fclose(fp);
+
 
 
 	myFile.Write(szBuffer.GetBuffer(szBuffer.GetLength()),szBuffer.GetLength());
