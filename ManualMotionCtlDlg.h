@@ -92,4 +92,6 @@ public:
 	afx_msg void OnBnClickedReadTest();
 	afx_msg void OnBnClickedRunAbSequence();
 	afx_msg void OnBnClicked16points();
+	afx_msg void OnStnClickedStatus();
+	afx_msg void OnBnClickedGoto0();
 };

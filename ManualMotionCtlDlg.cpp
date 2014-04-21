@@ -57,6 +57,8 @@ BEGIN_MESSAGE_MAP(CManualMotionCtlDlg, CDialogEx)
 
 	ON_BN_CLICKED(IDC_RUN_AB_SEQUENCE, &CManualMotionCtlDlg::OnBnClickedRunAbSequence)
 	ON_BN_CLICKED(IDC_16POINTS, &CManualMotionCtlDlg::OnBnClicked16points)
+	ON_STN_CLICKED(IDC_STATUS, &CManualMotionCtlDlg::OnStnClickedStatus)
+	ON_BN_CLICKED(IDC_GOTO0, &CManualMotionCtlDlg::OnBnClickedGoto0)
 END_MESSAGE_MAP()
 
 
@@ -1830,7 +1832,7 @@ else
 
 	KillTimer(TIMER_CHECK_START_CYCLE);
 	OnBnClickedRestall();
-
+	int i,j;
 	int nLength = 0;
 	
 	FILE* fp;
@@ -1845,7 +1847,7 @@ else
 
 	
  
-    for(int i=0;i<nLength;i++)
+    for( i=0;i<nLength;i++)
 	{
 		fscanf(fp,"%d %d %d %d\n",&points[i].id,&points[i].vect_id,&points[i].x,&points[i].y);
 	}
@@ -2009,24 +2011,26 @@ else
 	nZAddr -= SERIAL_MODBUS_OFFSET;
 
 	int nSequenceNum = nLength/15 +1;
-	int i,j;
+	
 	for( i=0 ; i<nSequenceNum; i++ )
 	{
+		
 		m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nSequenceAddr,i+1);
 			
+
 		int start = i*15;
 
 		int end = (i+1)*15;
 
 		if( end > nLength) end = nLength;
-		if( i == 9) 
-			int a = 1;
+	    
 		for (  j=start ;j <end ; j++)
 		{
 			float x = points[j].x/4.;
 			float y = points[j].y/4.;
-
-			m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
+		//	if( j == 16) 
+		//	int ttt = 1;
+			m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,0);
 
 			switch (points[j].vect_id)
 			{
@@ -2050,9 +2054,11 @@ else
 				break;
 		
 			default:
-				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
 				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
-			}
+				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+				
+				}
+			m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
 
 		}
 
@@ -2114,5 +2120,181 @@ else
 	OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, 0, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
 	m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nSequenceAddr,0);
 	SetTimer(TIMER_CHECK_START_CYCLE,100,NULL);
+
+}
+
+
+void CManualMotionCtlDlg::OnStnClickedStatus()
+{
+	
+
+
+
+}
+
+
+void CManualMotionCtlDlg::OnBnClickedGoto0()
+{
+	// TODO: Add your control notification handler code here
+	// TODO: Add your control notification handler code here
+
+
+	// TODO: Add your control notification handler code here
+		CString str;
+	UpdateData();
+GetDlgItem(IDC_PORT)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nPort))
+	{
+		AfxMessageBox("wrong port value");
+		return;
+	}
+	
+	GetDlgItem(IDC_BAUDRATE)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nBaudrate))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	int nXStartAddr,nYStartAddr, nXCompleteAddr, nYCompleteAddr, nXProfileAddr, nYProfileAddr, nXSegNumAddr, nYSegNumAddr;
+	int nXCaptureAddr,nYCaptureAddr, nZAddr;
+
+	int nSequenceAddr;
+
+
+	
+
+	
+
+	UpdateData();
+
+    GetDlgItem(IDC_SEQUENCE_NUM)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nSequenceAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+
+	GetDlgItem(IDC_SEGNUMADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXSegNumAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_PROFILEADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXProfileAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	
+
+	GetDlgItem(IDC_STARTADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXStartAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+		
+	GetDlgItem(IDC_COMPLETEADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXCompleteAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+
+	GetDlgItem(IDC_Y_SEG_NUM_ADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYSegNumAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_Y_PROFILE_ADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYProfileAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	
+
+	GetDlgItem(IDC_Y_START_ADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYStartAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+		
+	GetDlgItem(IDC_Y_COMPLETE_ADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYCompleteAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+			
+	GetDlgItem(IDC_XCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXCaptureAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+		GetDlgItem(IDC_YCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYCaptureAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_ZADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nZAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+
+
+	float fspeed,facc,fdece,fpos,fjerk;
+
+	m_Acceleration.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, facc))
+	{
+		AfxMessageBox("wrong acceleration value");
+		return;
+	}
+	    
+    m_Speed.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fspeed))
+	{
+		AfxMessageBox("wrong speed value");
+		return;
+	}
+
+    m_Deceleration.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fdece))
+	{
+		AfxMessageBox("wrong deceleration value");
+		return;
+	}
+
+	m_Jerk.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fjerk))
+	{
+		AfxMessageBox("wrong jerk value");
+		return;
+	}
+    OnBnClickedRestall();
+	OneSegMentMove(m_MotionCtl, m_nYMotionSegIndex, fspeed, facc, fdece, 0, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+
+	OneSegMentMove(m_MotionCtl, m_nYMotionSegIndex, fspeed, facc, fdece, 0, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr );
+
+	
+	
+	
 
 }
