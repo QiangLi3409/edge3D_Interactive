@@ -5,6 +5,15 @@
 // CManualMotionCtlDlg dialog
 #define TIMER_CHECK_START_CYCLE 100
 
+typedef struct MovePoint
+{
+	int id;
+	int vect_id;
+	int x;
+	int y;
+	int z;
+} MOVEPOINTS;
+#define MEASURE_OFFSET 650
 class CManualMotionCtlDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(CManualMotionCtlDlg)
@@ -82,4 +91,5 @@ public:
 	afx_msg void OnBnClickedWriteTest();
 	afx_msg void OnBnClickedReadTest();
 	afx_msg void OnBnClickedRunAbSequence();
+	afx_msg void OnBnClicked16points();
 };
