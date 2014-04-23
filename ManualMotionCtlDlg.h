@@ -30,6 +30,7 @@ public:
 
 	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nXCaptureAddr, int nZAddr );
 
+	void JamesStartCycle();
 // Dialog Data
 	enum { IDD = IDD_MODBUD_DLG };
 

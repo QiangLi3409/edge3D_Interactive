@@ -57,7 +57,7 @@ BEGIN_MESSAGE_MAP(CManualMotionCtlDlg, CDialogEx)
 
 	ON_BN_CLICKED(IDC_RUN_AB_SEQUENCE, &CManualMotionCtlDlg::OnBnClickedRunAbSequence)
 	ON_BN_CLICKED(IDC_16POINTS, &CManualMotionCtlDlg::OnBnClicked16points)
-	ON_STN_CLICKED(IDC_STATUS, &CManualMotionCtlDlg::OnStnClickedStatus)
+
 	ON_BN_CLICKED(IDC_GOTO0, &CManualMotionCtlDlg::OnBnClickedGoto0)
 END_MESSAGE_MAP()
 
@@ -197,8 +197,7 @@ void CManualMotionCtlDlg::OnTimer(UINT_PTR nIDEvent)
 		}
 		m_MotionCtl.m_Modbus.ModbusReadDSOneByOne(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,8,1,&m_nStartCycle);
 		if ( m_nStartCycle > 0)
-		 // OnBnClickedRunAbSequence();
-		 OnBnClicked16points();
+		JamesStartCycle();
 	}
 
 	if (nIDEvent == 1)
@@ -1809,15 +1808,17 @@ void CManualMotionCtlDlg::OnBnClickedRunAbSequence()
 
 }
 
+//#define TOUCH 
+
 
 void CManualMotionCtlDlg::OnBnClicked16points()
 {
-	
+#ifndef TOUCH
 
-	/*char szFilters[]= "Ted Files (*.sp3)|*.sp3|Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";
+	char szFilters[]= "Ted Files (*.sp3)|*.sp3|Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";
 	CString m_strPathname; 
 // Create an Open dialog; the default file name extension is ".my".
-    CFileDialog fileDlg (TRUE, "sp3", "*.sp3",
+    CFileDialog fileDlg (TRUE, "txt", "*.txt",
     OFN_FILEMUSTEXIST| OFN_HIDEREADONLY, szFilters, this);
 
 // Display the file dialog. When user clicks OK, fileDlg.DoModal()
@@ -1828,7 +1829,8 @@ if( fileDlg.DoModal ()==IDOK )
 	//strcpy_s(filename,200,m_strPathname);
 }
 else
-	return;*/
+	return;
+#endif
 
 	KillTimer(TIMER_CHECK_START_CYCLE);
 	OnBnClickedRestall();
@@ -1837,9 +1839,11 @@ else
 	
 	FILE* fp;
 
-	fp = fopen("C:\\data\\sensorvalidatepoints-flintstone-32.sp3", "r");
- 
-	//fp = fopen(m_strPathname.GetBuffer(m_strPathname.GetLength()), "r");
+	//fp = fopen("C:\\data\\frame_sensorpoints[ID_2][Wrap_16]-new1.txt", "r");
+	#ifndef TOUCH
+		fp = fopen(m_strPathname.GetBuffer(m_strPathname.GetLength()), "r");
+	#endif
+
     fscanf(fp,"%d\n",&nLength);
 	
 
@@ -2026,12 +2030,11 @@ else
 	    
 		for (  j=start ;j <end ; j++)
 		{
+			
+				if(13 == points[j].id)
+					int a = 1;
 			float x = points[j].x/4.;
 			float y = points[j].y/4.;
-		//	if( j == 16) 
-		//	int ttt = 1;
-			m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,0);
-
 			switch (points[j].vect_id)
 			{
 		
@@ -2041,6 +2044,8 @@ else
 				if(points[j].x > xc) x = x + MEASURE_OFFSET;
 				x = x<0?0:x;
 				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+				m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
+
 				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
 				break;
 		
@@ -2050,15 +2055,16 @@ else
 				if(points[j].y > yc) y = y + MEASURE_OFFSET;
 				y = y<0?0:y;
 				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+				m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
 				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
 				break;
 		
 			default:
 				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+				m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
 				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
 				
 				}
-			m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
 
 		}
 
@@ -2078,8 +2084,12 @@ else
 		CListBox* list = (CListBox*) GetDlgItem(IDC_POS);
 		CFile	myFile;CString szBuffer;
 		char xyzfilename[200];
-		sprintf(xyzfilename,"C:\\data\\sensorvalidatepoints-flintstone-32.sp3_XYZ.txt");
-		fp = fopen(xyzfilename,"w");
+		//sprintf(xyzfilename,"%s","xyz.txt");
+    
+		#ifndef TOUCH
+	    sprintf(xyzfilename,"%s_XYZ.txt",m_strPathname.GetBuffer(m_strPathname.GetLength()-3));
+#endif 
+     fp = fopen(xyzfilename,"w");
 		CString t = CTime::GetCurrentTime().Format("%H:%M");
     	szBuffer.Append(t);
 		szBuffer.Append("\n");
@@ -2121,16 +2131,310 @@ else
 	m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nSequenceAddr,0);
 	SetTimer(TIMER_CHECK_START_CYCLE,100,NULL);
 
+	MessageBox(xyzfilename);
+
+
 }
 
 
-void CManualMotionCtlDlg::OnStnClickedStatus()
+void CManualMotionCtlDlg::JamesStartCycle()
 {
+	KillTimer(TIMER_CHECK_START_CYCLE);
+	OnBnClickedRestall();
+	int i,j;
+	int nLength = 0;
+	
+	FILE* fp;
+
+	fp = fopen("C:\\data\\startcycle.txt", "r");
+	 fscanf(fp,"%d\n",&nLength);
 	
 
+	MOVEPOINTS *points = new MOVEPOINTS [nLength];
+
+	
+ 
+    for( i=0;i<nLength;i++)
+	{
+		fscanf(fp,"%d %d %d %d\n",&points[i].id,&points[i].vect_id,&points[i].x,&points[i].y);
+	}
+	fclose(fp);
+
+	int xc = points[0].x;
+	int yc = points[0].y;
+
+	CString str;
+
+	GetDlgItem(IDC_PORT)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nPort))
+	{
+		AfxMessageBox("wrong port value");
+		return;
+	}
+	
+	GetDlgItem(IDC_BAUDRATE)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, m_MotionCtl.m_nBaudrate))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	int nXStartAddr,nYStartAddr, nXCompleteAddr, nYCompleteAddr, nXProfileAddr, nYProfileAddr, nXSegNumAddr, nYSegNumAddr;
+	int nXCaptureAddr,nYCaptureAddr, nZAddr;
+
+	int nSequenceAddr;
+	
+	UpdateData();
+
+    GetDlgItem(IDC_SEQUENCE_NUM)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nSequenceAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
 
 
+	GetDlgItem(IDC_SEGNUMADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXSegNumAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_PROFILEADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXProfileAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	
+
+	GetDlgItem(IDC_STARTADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXStartAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+		
+	GetDlgItem(IDC_COMPLETEADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXCompleteAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+
+	GetDlgItem(IDC_Y_SEG_NUM_ADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYSegNumAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_Y_PROFILE_ADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYProfileAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+	
+
+	GetDlgItem(IDC_Y_START_ADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYStartAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+		
+	GetDlgItem(IDC_Y_COMPLETE_ADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYCompleteAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+			
+	GetDlgItem(IDC_XCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nXCaptureAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+		GetDlgItem(IDC_YCAPTUREADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nYCaptureAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+	GetDlgItem(IDC_ZADDRESS)->GetWindowTextA(str);
+	if (!GetIntFromEditBox(str, nZAddr))
+	{
+		AfxMessageBox("wrong baudrate value");
+		return;
+	}
+
+
+
+	float fspeed,facc,fdece,fpos,fjerk;
+
+	m_Acceleration.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, facc))
+	{
+		AfxMessageBox("wrong acceleration value");
+		return;
+	}
+	    
+    m_Speed.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fspeed))
+	{
+		AfxMessageBox("wrong speed value");
+		return;
+	}
+
+    m_Deceleration.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fdece))
+	{
+		AfxMessageBox("wrong deceleration value");
+		return;
+	}
+
+	m_Jerk.GetWindowTextA(str);
+	if (!GetDoubleFromEditBox(str, fjerk))
+	{
+		AfxMessageBox("wrong jerk value");
+		return;
+	}
+
+	// write sequence num
+	nSequenceAddr -=  SERIAL_MODBUS_OFFSET;
+	float *xcapture, *ycapture, *zvalues;
+	xcapture = new float[nLength];
+	ycapture = new float[nLength];
+	zvalues = new float[nLength];
+	nXCaptureAddr -= SERIAL_MODBUS_OFFSET;
+	nYCaptureAddr -= SERIAL_MODBUS_OFFSET;
+	nZAddr -= SERIAL_MODBUS_OFFSET;
+
+	int nSequenceNum = nLength/15 +1;
+	
+	for( i=0 ; i<nSequenceNum; i++ )
+	{
+		
+		m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nSequenceAddr,i+1);
+			
+
+		int start = i*15;
+
+		int end = (i+1)*15;
+
+		if( end > nLength) end = nLength;
+	    
+		for (  j=start ;j <end ; j++)
+		{
+			
+				if(13 == points[j].id)
+					int a = 1;
+			float x = points[j].x/4.;
+			float y = points[j].y/4.;
+			switch (points[j].vect_id)
+			{
+		
+			case 2:
+
+				if(points[j].x < xc) x = x - MEASURE_OFFSET;
+				if(points[j].x > xc) x = x + MEASURE_OFFSET;
+				x = x<0?0:x;
+				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+				m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
+
+				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+				break;
+		
+		
+			case 1:
+				if(points[j].y < yc) y = y - MEASURE_OFFSET;
+				if(points[j].y > yc) y = y + MEASURE_OFFSET;
+				y = y<0?0:y;
+				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+				m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
+				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+				break;
+		
+			default:
+				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, y, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+				m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,400007-SERIAL_MODBUS_OFFSET,points[j].vect_id);
+				OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, x, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+				
+				}
+
+		}
+
+		// need to read all the caputre when sequecne is done
+	
+
+		m_MotionCtl.m_Modbus.ModbusReadFloat(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nXCaptureAddr,end - start,xcapture+start);
+
+		m_MotionCtl.m_Modbus.ModbusReadFloat(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nYCaptureAddr,end - start,ycapture+start);
+
+		m_MotionCtl.m_Modbus.ModbusReadFloat(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nZAddr,end - start,zvalues+start);
+
+	} // end of sequence 
+	
+					
+		CString temp;
+		CListBox* list = (CListBox*) GetDlgItem(IDC_POS);
+		CFile	myFile;CString szBuffer;
+		char xyzfilename[200];
+		sprintf(xyzfilename,"%s","C:\\data\\startcycle_xyz.txt");
+    
+		
+     fp = fopen(xyzfilename,"w");
+		CString t = CTime::GetCurrentTime().Format("%H:%M");
+    	szBuffer.Append(t);
+		szBuffer.Append("\n");
+		for(  i=0;i<nLength;i++)
+		{
+			switch (points[i].vect_id)
+			{
+			case 1:
+				temp.Format("P_id %d vec_id:1 Y:%3.2f z:%3.2f\n",points[i].id,ycapture[i],zvalues[i]);
+		   		fprintf(fp, "%d %6.4f %6.4f %6.4f\n",points[i].id, -1.,ycapture[i],zvalues[i]);
+				szBuffer.Append(temp);list->AddString(temp);break;
+			case 2:
+				temp.Format("P_id %d vec_id:2 X:%3.2f z:%3.2f\n",points[i].id,xcapture[i],zvalues[i]);
+				fprintf(fp, "%d %6.4f %6.4f %6.4f\n",points[i].id, xcapture[i],-1.,zvalues[i]);
+				szBuffer.Append(temp);list->AddString(temp);break;
+			default:
+				break;
+
+			}
+			
+	
+		}
+
+		
+			if ( myFile.Open( _T("capture_z.txt"), CFile::modeCreate |   
+			CFile::modeReadWrite | CFile::modeNoTruncate ) )
+			{
+				myFile.Write(szBuffer.GetBuffer(szBuffer.GetLength()),szBuffer.GetLength());
+	
+
+			}
+			myFile.Close();
+			fclose(fp);
+			UpdateData(false);
+
+	// reset sequence as 0
+	OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, 0, fjerk,nXSegNumAddr, nXProfileAddr, nXStartAddr, nXCompleteAddr,nXCaptureAddr, nZAddr);
+	OneSegMentMove(m_MotionCtl, (j%15)+1, fspeed, facc, fdece, 0, fjerk,nYSegNumAddr, nYProfileAddr, nYStartAddr, nYCompleteAddr,nXCaptureAddr, nZAddr );
+	m_MotionCtl.m_Modbus.ModbusWriteOneDS(m_MotionCtl.m_nPort,m_MotionCtl.m_nBaudrate,nSequenceAddr,0);
+	SetTimer(TIMER_CHECK_START_CYCLE,100,NULL);
+	
 }
+
+
 
 
 void CManualMotionCtlDlg::OnBnClickedGoto0()
