@@ -32,6 +32,9 @@ public:
 
 	void SetXYZCaptgureAddr( int nXcapture, int nYcapture, int nZcapture){m_nXCaptureAddr = nXcapture-m_nSERIAL_MODBUS_OFFSET ;m_nYCaptureAddr=nYcapture-m_nSERIAL_MODBUS_OFFSET; m_nZAddr=nZcapture-m_nSERIAL_MODBUS_OFFSET;}
 
+
+	// never change anything of the xyz segmentmove function it just works 
+
 	bool OneXSegMentMove(int nSeg, float fspeed,float facc,float fdece,float fpos,float fjerk);
 
 	bool OneYSegMentMove(int nSeg, float fspeed,float facc,float fdece,float fpos,float fjerk);
