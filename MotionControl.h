@@ -45,5 +45,7 @@ public:
 	CModbus m_Modbus;
 	unsigned short m_Monster;
 
+
+
 };
 

@@ -26,7 +26,7 @@ public:
 
 	void OneSegMentMove(int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk);
 	
-	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAddr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nXCaptureAddr, int nZAddr );
+	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAddr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nXCaptureAddr=0, int nZAddr=0 );
 
 	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nXCaptureAddr, int nZAddr );
 
@@ -95,4 +95,8 @@ public:
 	afx_msg void OnBnClicked16points();
 	afx_msg void OnStnClickedStatus();
 	afx_msg void OnBnClickedGoto0();
+	afx_msg void OnBnClickedButtonSingleZ();
+	CComboBox m_ZMotionSegNum;
+	afx_msg void OnBnClickedResetZ();
+	afx_msg void OnBnClicked16pointsXyz();
 };
