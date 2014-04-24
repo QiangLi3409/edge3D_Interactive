@@ -5,15 +5,8 @@
 // CManualMotionCtlDlg dialog
 #define TIMER_CHECK_START_CYCLE 100
 
-typedef struct MovePoint
-{
-	int id;
-	int vect_id;
-	int x;
-	int y;
-	int z;
-} MOVEPOINTS;
-#define MEASURE_OFFSET 650
+
+
 class CManualMotionCtlDlg : public CDialogEx
 {
 	DECLARE_DYNAMIC(CManualMotionCtlDlg)
@@ -24,11 +17,11 @@ public:
 	bool GetDoubleFromEditBox(const CString str, float &output);
 	bool CManualMotionCtlDlg::GetIntFromEditBox(const CString str, int &output);
 
-	void OneSegMentMove(int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk);
+//	void OneSegMentMove(int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk);
 	
-	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAddr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nXCaptureAddr=0, int nZAddr=0 );
+//	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fpos,float fjerk,int nSegNumAddr, int nProfileAddr, int nStartAddr, int nCompleteAddr,int nXCaptureAddr=0, int nZAddr=0 );
 
-	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nXCaptureAddr, int nZAddr );
+//	void OneSegMentMove(CMotionControl MotionCtl,int nSeg,float fspeed,float facc,float fdece,float fXpos,float fYpos,float fjerk,int nXSegNumAddr, int nXProfileAddr, int nXStartAddr, int nXCompleteAddr,int nYSegNumAddr, int nYProfileAddr, int nYStartAddr, int nYCompleteAddr,int nXCaptureAddr, int nZAddr );
 
 	void JamesStartCycle();
 // Dialog Data
@@ -81,22 +74,24 @@ public:
 	int m_nYStartAddress;
 	int m_nYCompleteAddress;
 
-	afx_msg void OnBnClickedReset();
-	afx_msg void OnBnClickedMoveSequence();
+//	afx_msg void OnBnClickedReset();
+//	afx_msg void OnBnClickedMoveSequence();
 	CComboBox m_YMotionSeg;
 	afx_msg void OnSelchangeYMotionSeg();
-	afx_msg void OnBnClickedResetY();
+//	afx_msg void OnBnClickedResetY();
 	afx_msg void OnBnClickedButton2();
-	afx_msg void OnBnClickedTestMove();
-	afx_msg void OnBnClickedRestall();
-	afx_msg void OnBnClickedWriteTest();
+//	afx_msg void OnBnClickedTestMove();
+//	afx_msg void OnBnClickedRestall();
+//	afx_msg void OnBnClickedWriteTest();
 	afx_msg void OnBnClickedReadTest();
-	afx_msg void OnBnClickedRunAbSequence();
+
 	afx_msg void OnBnClicked16points();
 	afx_msg void OnStnClickedStatus();
 	afx_msg void OnBnClickedGoto0();
 	afx_msg void OnBnClickedButtonSingleZ();
 	CComboBox m_ZMotionSegNum;
-	afx_msg void OnBnClickedResetZ();
+//	afx_msg void OnBnClickedResetZ();
 	afx_msg void OnBnClicked16pointsXyz();
+	afx_msg void OnBnClickedRestall();
+	void SetUpMotionCtl(void);
 };
