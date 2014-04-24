@@ -1390,7 +1390,8 @@ void CManualMotionCtlDlg::JamesStartCycle()
 	{
 		char xyzfilename[200];
 	    sprintf(xyzfilename,"%s_XYZ.txt",filename.GetBuffer(filename.GetLength()-3));
-	    MessageBox(xyzfilename);
+		GetDlgItem(IDC_STATUS)->SetWindowTextA(xyzfilename);
+	  // MessageBox(xyzfilename);
 	}
 	else
 	{

@@ -456,6 +456,7 @@ int CMotionControl::MoveByTedFile(CString filename,float fspeed,float facc,float
 		
 			if ( myFile.Open( _T("capture_z.txt"), CFile::modeCreate | 	CFile::modeReadWrite | CFile::modeNoTruncate ) )
 			{
+				myFile.SeekToEnd();
 				myFile.Write(m_message.GetBuffer(m_message.GetLength()),m_message.GetLength());
 	
 
