@@ -1397,7 +1397,7 @@ void CManualMotionCtlDlg::JamesStartCycle()
 		MessageBox(m_MotionCtl.GetMotionCtlMessage());
 
 	}
-	
+	SetTimer(TIMER_CHECK_START_CYCLE,100,NULL);
 }
 
 
