@@ -365,47 +365,134 @@ int CMotionControl::MoveByTedFile(CString filename,float fspeed,float facc,float
 			float x = points[j].x/4.;
 			float y = points[j].y/4.;
 			float z = points[j].z;
-
+			SetSegNum((j%15)+1);
 			switch (points[j].vect_id)
 			{
 		
 			case 2:
-
-				if (!OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk )) {return 1;}
-
-				if(points[j].x < xc) x = x - m_nMEASURE_OFFSET;
-				if(points[j].x > xc) x = x + m_nMEASURE_OFFSET;
-				x = x<0?0:x;
-				if (!OneYSegMentMove((j%15)+1, fspeed, facc, fdece, y, fjerk)) {return 1;};
-
+				if (z >=0)
+				{
+					if (!OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk )) {return 1;}
+				}
+				else
+				{
+					WriteSegNum(m_nZSegNumAddr);
+				}
+			    
+				if ( y>=0)
+				{
+					if (!OneYSegMentMove((j%15)+1, fspeed, facc, fdece, y, fjerk)) {return 1;};
+				}
+				else
+				{
+					WriteSegNum(m_nYSegNumAddr);
+				}
 				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
 
-				if (!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)) {return 1;}
+				if ( x >= 0)
+				{
+					if(points[j].x < xc) x = x - m_nMEASURE_OFFSET;
+					if(points[j].x > xc) x = x + m_nMEASURE_OFFSET;
+					x = x<0?0:x;
+					if (!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)) {return 1;}
+				}
+				else
+				{
+					WriteSegNum(m_nXSegNumAddr);
+				}
 				break;
 		
 		
 			case 1:
-				OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk);
+
+				if (z >=0)
+				{
+					if (!OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk )) {return 1;}
+				}
+				else
+				{
+					WriteSegNum(m_nZSegNumAddr);
+				}
 
 
-				if(points[j].y < yc) y = y - m_nMEASURE_OFFSET;
-				if(points[j].y > yc) y = y + m_nMEASURE_OFFSET;
-				y = y<0?0:y;
-				if(!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)) {return 1;}
+				if ( x >= 0)
+				{
+					if(!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)) {return 1;}
+				}
+				else
+				{
+					WriteSegNum(m_nXSegNumAddr);
+				}
 
 				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
-				if(!OneYSegMentMove( (j%15)+1, fspeed, facc, fdece, y, fjerk)){return 1;}
+				if(y>=0)
+				{
+					if(points[j].y < yc) y = y - m_nMEASURE_OFFSET;
+					if(points[j].y > yc) y = y + m_nMEASURE_OFFSET;
+					y = y<0?0:y;
+					if(!OneYSegMentMove( (j%15)+1, fspeed, facc, fdece, y, fjerk)){return 1;}
+				}
+				else
+				{
+					WriteSegNum(m_nYSegNumAddr);
+				}
+
 				break;
 		
-			default:
-				if (!OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk)) {return 1;}
+			case 0:
 
-
-				if(!OneYSegMentMove((j%15)+1, fspeed, facc, fdece, y, fjerk)){return 1;}
-				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
-				if(!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)){return 1;}
-				
+				if (z >=0)
+				{
+					if (!OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk )) {return 1;}
 				}
+				else
+				{
+					WriteSegNum(m_nZSegNumAddr);
+				}
+				if ( y>=0)
+				{
+					if (!OneYSegMentMove((j%15)+1, fspeed, facc, fdece, y, fjerk)) {return 1;};
+				}
+				else
+				{
+					WriteSegNum(m_nYSegNumAddr);
+				}
+
+				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
+				if ( x >= 0)
+				{
+					if(!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)) {return 1;}
+				}
+				else
+				{
+					WriteSegNum(m_nXSegNumAddr);
+				}
+				break;
+
+			case 3:
+				if ( z >= 0) 
+					OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk);
+				else
+					WriteSegNum(m_nZSegNumAddr);
+				
+				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
+				WriteSegNum(m_nYSegNumAddr);
+				WriteSegNum(m_nXSegNumAddr);
+				break;
+			case 4:
+				WriteSegNum(m_nXSegNumAddr);
+				WriteSegNum(m_nYSegNumAddr);
+				WriteSegNum(m_nZSegNumAddr);
+
+				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
+				
+				AfxMessageBox("Take snapshot");
+
+				break;
+			default:
+				break;
+				
+			}
 
 		}
 
