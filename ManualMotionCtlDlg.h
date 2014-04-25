@@ -74,6 +74,8 @@ public:
 	int m_nYStartAddress;
 	int m_nYCompleteAddress;
 
+	CString m_StartCycleFilename;
+
 //	afx_msg void OnBnClickedReset();
 //	afx_msg void OnBnClickedMoveSequence();
 	CComboBox m_YMotionSeg;

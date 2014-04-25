@@ -119,6 +119,8 @@ BOOL CManualMotionCtlDlg::OnInitDialog()
 	
 	SetTimer(TIMER_CHECK_START_CYCLE,100,NULL);
 	SetUpMotionCtl();
+
+		m_StartCycleFilename = "C:\\data\\startcycle.txt";
 	return TRUE;
 }
 
@@ -1353,7 +1355,7 @@ void CManualMotionCtlDlg::JamesStartCycle()
 {
 	KillTimer(TIMER_CHECK_START_CYCLE);
 	
-	CString filename = "C:\\data\\startcycle.txt";
+
 	CString str;
 	
 	float fspeed,facc,fdece,fpos,fjerk;
@@ -1386,10 +1388,10 @@ void CManualMotionCtlDlg::JamesStartCycle()
 		return;
 	}
 
-	if (0 == m_MotionCtl.MoveByTedFile(filename,fspeed,facc,fdece,fjerk))
+	if (0 == m_MotionCtl.MoveByTedFile(m_StartCycleFilename,fspeed,facc,fdece,fjerk))
 	{
 		char xyzfilename[200];
-	    sprintf(xyzfilename,"%s_XYZ.txt",filename.GetBuffer(filename.GetLength()-3));
+	    sprintf(xyzfilename,"%s_XYZ.txt",m_StartCycleFilename.GetBuffer(m_StartCycleFilename.GetLength()-3));
 		GetDlgItem(IDC_STATUS)->SetWindowTextA(xyzfilename);
 	  // MessageBox(xyzfilename);
 	}
@@ -1576,6 +1578,9 @@ void CManualMotionCtlDlg::OnBnClicked16pointsXyz()
 
 	m_strPathname = fileDlg.GetPathName();
 
+	::DeleteFileA(m_StartCycleFilename);
+
+	::CopyFileA(m_strPathname,m_StartCycleFilename,false);
 
     CString str;
     SetUpMotionCtl();

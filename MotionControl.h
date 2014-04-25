@@ -89,6 +89,9 @@ protected:
 	
 	CString m_message;
 
+	int m_nZhome;
+	int m_nXhome,m_nYhome;
+
 
 
 

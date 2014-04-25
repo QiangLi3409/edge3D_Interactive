@@ -57,6 +57,12 @@ CMotionControl::CMotionControl(void)
 	 m_nMEASURE_OFFSET =650;
 
 
+	 
+	m_nZhome = 7471;
+
+	m_nXhome= m_nYhome = 0;
+
+
 }
 
 
@@ -553,10 +559,10 @@ int CMotionControl::MoveByTedFile(CString filename,float fspeed,float facc,float
 		
 
 	// reset sequence as 0
-	OneZSegMentMove((j%15)+1, fspeed, facc, fdece, 6948, fjerk);
+	OneZSegMentMove((j%15)+1, fspeed, facc, fdece, m_nZhome, fjerk);
 
-	OneXSegMentMove((j%15)+1, fspeed, facc, fdece, 0, fjerk);
-	OneYSegMentMove((j%15)+1, fspeed, facc, fdece, 0, fjerk);
+	OneXSegMentMove((j%15)+1, fspeed, facc, fdece, m_nXhome, fjerk);
+	OneYSegMentMove((j%15)+1, fspeed, facc, fdece, m_nYhome, fjerk);
 	m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nSequenceAddr,0);
 	return 0;
 
