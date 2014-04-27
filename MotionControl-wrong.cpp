@@ -57,12 +57,6 @@ CMotionControl::CMotionControl(void)
 	 m_nMEASURE_OFFSET =650;
 
 
-	 
-	m_nZhome = 7471;
-
-	m_nXhome= m_nYhome = 0;
-
-
 }
 
 
@@ -169,7 +163,7 @@ void CMotionControl::WriteProfile(unsigned short nProfileMBAddress)
 
 
 }
-bool CMotionControl::OneXSegMentMove(int nSeg, float fspeed,float facc,float fdece,float fpos,float fjerk)
+bool CMotionControl::OneXSegMentMove( float fspeed,float facc,float fdece,float fpos,float fjerk)
 {
 		
 	SetAcc(facc);
@@ -177,10 +171,13 @@ bool CMotionControl::OneXSegMentMove(int nSeg, float fspeed,float facc,float fde
 	SetJerk(fjerk);
 	SetPos(fpos);
 	SetSpeed(fspeed);
-	SetSegNum(nSeg);
-		
+	
+	WriteSegNum(m_nXSegNumAddr);	
+
 	WriteProfile(m_nXProfileAddr);
-	WriteSegNum(m_nXSegNumAddr);
+
+	
+	
 	WriteSingleStepStart(m_nXStartAddr);
    
 	Sleep(60);
@@ -190,18 +187,18 @@ bool CMotionControl::OneXSegMentMove(int nSeg, float fspeed,float facc,float fde
 	{
 		int result = ReadSingleStep( m_nXCompleteAddr);
 
-		if (result == 0) {m_message.Format("X Seg %d, sucessful",nSeg); return true; break;}
+		if (result == 0) { return true; break;}
 			
-		if (result == 2) {m_message.Format("X Seg %d, error Modbus",nSeg); return false; break;}
+		if (result == 2) {m_message.Format("X Seg %d , error Modbus",m_nSegNum); return false; break;}
 
-		if (result == 1 ) {m_message.Format("X Seg %d waiting for complete",nSeg);}
+		if (result == 1 ) {m_message.Format("waiting");}
 
 	}
 		
 	return true;
 }
 
-bool CMotionControl::OneYSegMentMove(int nSeg, float fspeed,float facc,float fdece,float fpos,float fjerk)
+bool CMotionControl::OneYSegMentMove( float fspeed,float facc,float fdece,float fpos,float fjerk)
 {
 		
 	SetAcc(facc);
@@ -209,10 +206,10 @@ bool CMotionControl::OneYSegMentMove(int nSeg, float fspeed,float facc,float fde
 	SetJerk(fjerk);
 	SetPos(fpos);
 	SetSpeed(fspeed);
-	SetSegNum(nSeg);
-		
+	
+		WriteSegNum(m_nYSegNumAddr);
 	WriteProfile(m_nYProfileAddr);
-	WriteSegNum(m_nYSegNumAddr);
+		
 	WriteSingleStepStart(m_nYStartAddr);
    
 	Sleep(60);
@@ -222,11 +219,11 @@ bool CMotionControl::OneYSegMentMove(int nSeg, float fspeed,float facc,float fde
 	{
 		int result = ReadSingleStep( m_nYCompleteAddr);
 
-		if (result == 0) {m_message.Format("Y Seg %d, sucessful",nSeg); return true; break;}
+		if (result == 0) {m_message.Format("Y Seg , sucessful"); return true; break;}
 			
-		if (result == 2) {m_message.Format("Y Seg %d, error Modbus",nSeg); return false; break;}
+		if (result == 2) {m_message.Format("Y Seg %d, error Modbus",m_nSegNum); return false; break;}
 
-		if (result == 1 ) {m_message.Format("Y Seg %d waiting for complete",nSeg);}
+		if (result == 1 ) {m_message.Format("Y Seg waiting for complete");}
 
 	}
 		
@@ -235,7 +232,7 @@ bool CMotionControl::OneYSegMentMove(int nSeg, float fspeed,float facc,float fde
 
 
 
-bool CMotionControl::OneZSegMentMove(int nSeg, float fspeed,float facc,float fdece,float fpos,float fjerk)
+bool CMotionControl::OneZSegMentMove(float fspeed,float facc,float fdece,float fpos,float fjerk)
 {
 		
 	SetAcc(facc);
@@ -243,10 +240,10 @@ bool CMotionControl::OneZSegMentMove(int nSeg, float fspeed,float facc,float fde
 	SetJerk(fjerk);
 	SetPos(fpos);
 	SetSpeed(fspeed);
-	SetSegNum(nSeg);
-		
+	
+	WriteSegNum(m_nZSegNumAddr);	
 	WriteProfile(m_nZProfileAddr);
-	WriteSegNum(m_nZSegNumAddr);
+		
 	WriteSingleStepStart(m_nZStartAddr);
    
 	Sleep(60);
@@ -256,11 +253,11 @@ bool CMotionControl::OneZSegMentMove(int nSeg, float fspeed,float facc,float fde
 	{
 		int result = ReadSingleStep( m_nZCompleteAddr);
 
-		if (result == 0) {m_message.Format("Z Seg %d, sucessful",nSeg); return true; break;}
+		if (result == 0) {m_message.Format("Z Seg , sucessful"); return true; break;}
 			
-		if (result == 2) {m_message.Format("Z Seg %d, error Modbus",nSeg); return false; break;}
+		if (result == 2) {m_message.Format("Z Seg %d, error Modbus",m_nSegNum); return false; break;}
 
-		if (result == 1 ) {m_message.Format("Z Seg %d waiting for complete",nSeg);}
+		if (result == 1 ) {m_message.Format("Z Seg waiting for complete");}
 
 	}
 	
@@ -296,6 +293,7 @@ void CMotionControl::Reset(unsigned short nSegNumMBAddress,unsigned short nStart
 void CMotionControl::WriteSegNum(unsigned short nSegNumAddress)
 {
 	// m_nSegNum is 0 but in modbus is 1
+	   
 
 		if (!m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,nSegNumAddress,0))
 		AfxMessageBox((m_Modbus.modbusStatus.c_str()));
@@ -371,113 +369,86 @@ int CMotionControl::MoveByTedFile(CString filename,float fspeed,float facc,float
 			float x = points[j].x/4.;
 			float y = points[j].y/4.;
 			float z = points[j].z;
+			
 			SetSegNum((j%15)+1);
 			switch (points[j].vect_id)
 			{
-		
+		       
 			case 2:
-				if (z >=0)
+				if(z >= 0 ) 
 				{
-					if (!OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk )) {return 1;}
+					if (!OneZSegMentMove(fspeed, facc, fdece, z, fjerk )) {return 1;}
 				}
 				else
 				{
 					WriteSegNum(m_nZSegNumAddr);
 				}
-			    
-				if ( y>=0)
-				{
-					if (!OneYSegMentMove((j%15)+1, fspeed, facc, fdece, y, fjerk)) {return 1;};
-				}
-				else
-				{
-					WriteSegNum(m_nYSegNumAddr);
-				}
-				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
 
-				if ( x >= 0)
+				if (x >= 0)
 				{
 					if(points[j].x < xc) x = x - m_nMEASURE_OFFSET;
 					if(points[j].x > xc) x = x + m_nMEASURE_OFFSET;
 					x = x<0?0:x;
-					if (!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)) {return 1;}
+					if (!OneXSegMentMove( fspeed, facc, fdece, x, fjerk)) {return 1;}
 				}
 				else
 				{
 					WriteSegNum(m_nXSegNumAddr);
 				}
+
+				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
+
+				if ( y >= 0) 
+				{
+					if (!OneYSegMentMove(fspeed, facc, fdece, y, fjerk)) {return 1;};
+				}
+				else
+				{
+					WriteSegNum(m_nYSegNumAddr);
+				}
+				
+				
 				break;
 		
 		
 			case 1:
-
-				if (z >=0)
+				if (z >= 0) 
 				{
-					if (!OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk )) {return 1;}
+					OneZSegMentMove( fspeed, facc, fdece, z, fjerk);
 				}
 				else
 				{
 					WriteSegNum(m_nZSegNumAddr);
 				}
-
-
-				if ( x >= 0)
+				if ( y >= 0 )
 				{
-					if(!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)) {return 1;}
-				}
-				else
-				{
-					WriteSegNum(m_nXSegNumAddr);
-				}
 
-				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
-				if(y>=0)
-				{
 					if(points[j].y < yc) y = y - m_nMEASURE_OFFSET;
 					if(points[j].y > yc) y = y + m_nMEASURE_OFFSET;
 					y = y<0?0:y;
-					if(!OneYSegMentMove( (j%15)+1, fspeed, facc, fdece, y, fjerk)){return 1;}
+					if(!OneYSegMentMove( fspeed, facc, fdece, y, fjerk)){return 1;}
+
 				}
 				else
 				{
 					WriteSegNum(m_nYSegNumAddr);
 				}
-
-				break;
-		
-			case 0:
-
-				if (z >=0)
-				{
-					if (!OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk )) {return 1;}
-				}
-				else
-				{
-					WriteSegNum(m_nZSegNumAddr);
-				}
-				if ( y>=0)
-				{
-					if (!OneYSegMentMove((j%15)+1, fspeed, facc, fdece, y, fjerk)) {return 1;};
-				}
-				else
-				{
-					WriteSegNum(m_nYSegNumAddr);
-				}
-
 				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
-				if ( x >= 0)
+				
+				if( x >= 0) 
 				{
-					if(!OneXSegMentMove((j%15)+1, fspeed, facc, fdece, x, fjerk)) {return 1;}
+					if(!OneXSegMentMove( fspeed, facc, fdece, x, fjerk)) {return 1;}
 				}
 				else
 				{
 					WriteSegNum(m_nXSegNumAddr);
 				}
-				break;
 
+				
+				break;
 			case 3:
 				if ( z >= 0) 
-					OneZSegMentMove((j%15)+1, fspeed, facc, fdece, z, fjerk);
+					OneZSegMentMove( fspeed, facc, fdece, z, fjerk);
 				else
 					WriteSegNum(m_nZSegNumAddr);
 				
@@ -485,20 +456,46 @@ int CMotionControl::MoveByTedFile(CString filename,float fspeed,float facc,float
 				WriteSegNum(m_nYSegNumAddr);
 				WriteSegNum(m_nXSegNumAddr);
 				break;
+		
+			case 0:
+				if ( x >= 0) 
+				{
+					if(!OneXSegMentMove( fspeed, facc, fdece, x, fjerk)){return 1;}
+				}
+				else
+				{
+					WriteSegNum(m_nXSegNumAddr);
+				}
+				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
+				
+				if ( y >= 0)
+				{
+					if(!OneYSegMentMove( fspeed, facc, fdece, y, fjerk)){return 1;}
+				
+				}
+				else
+				{
+					WriteSegNum(m_nYSegNumAddr);
+				}
+				if ( z >= 0)
+				{
+					if (!OneZSegMentMove( fspeed, facc, fdece, z, fjerk)) {return 1;}
+				}
+				else
+				{
+					WriteSegNum(m_nZSegNumAddr);
+				}
+				break;
 			case 4:
+
 				WriteSegNum(m_nXSegNumAddr);
 				WriteSegNum(m_nYSegNumAddr);
 				WriteSegNum(m_nZSegNumAddr);
 
 				m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nVecIDAddr,points[j].vect_id);
 				
-				//AfxMessageBox("Take snapshot");
+				AfxMessageBox("Take snapshot");
 
-				Sleep(2000);
-				CaptureImage();
-
-				break;
-			default:
 				break;
 				
 			}
@@ -528,8 +525,6 @@ int CMotionControl::MoveByTedFile(CString filename,float fspeed,float facc,float
         fp = fopen(xyzfilename,"w");
 		CString t = CTime::GetCurrentTime().Format("%H:%M");
     	m_message.Append(t);
-		m_message.Append("\n");
-		m_message.Append(filename);
 		m_message.Append("\n");
 		for(  i=0;i<nLength;i++)
 		{
@@ -564,97 +559,13 @@ int CMotionControl::MoveByTedFile(CString filename,float fspeed,float facc,float
 		
 
 	// reset sequence as 0
-	OneZSegMentMove((j%15)+1, fspeed, facc, fdece, m_nZhome, fjerk);
 
-	OneXSegMentMove((j%15)+1, fspeed, facc, fdece, m_nXhome, fjerk);
-	OneYSegMentMove((j%15)+1, fspeed, facc, fdece, m_nYhome, fjerk);
+	SetSegNum((j%15)+1);
+	OneZSegMentMove( fspeed, facc, fdece, 6948, fjerk);
+
+	OneXSegMentMove(fspeed, facc, fdece, 0, fjerk);
+	OneYSegMentMove( fspeed, facc, fdece, 0, fjerk);
 	m_Modbus.ModbusWriteOneDS(m_nPort,m_nBaudrate,m_nSequenceAddr,0);
 	return 0;
 
-}
-
-void CMotionControl:: SetSnapshotFileName(char buffer[200])
-{
-		      time_t rawtime;
-			  struct tm * timeinfo;
-			  time (&rawtime);
-			  timeinfo = localtime (&rawtime);
-			  strftime (buffer,200,"C:\\data\\snapshot\\%y-%m-%d-%I-%M%p.bmp",timeinfo);
-
-			  return;
-
-}
-
-void CMotionControl::CaptureImage()
-{
-	static int n=0;
-	
-	if ( n > 1) 
-		n = 0;
-
-	DWORD dwSize;
-	while( 1) 
-	{
-		dwSize=theApp.m_VMRCap.GrabFrame ();
-		if (dwSize > 0 )
-			break;
-	}
-
-	if(dwSize>0)
-	{
-		BYTE *pImage;
-		theApp.m_VMRCap.GetFrame (&pImage);
-	}
-	else 
-		return;
-
-
-		int p = 0;
-		CImage imageTransparentBack;
-		imageTransparentBack.Create(2304, -1296, 24);
-
-		BYTE* memTransparentBack = (BYTE*)imageTransparentBack.GetBits();
-
-		if(dwSize > 0)
-		{
-			BYTE *pImage;
-
-			dwSize=theApp.m_VMRCap.GetFrame(&pImage);
-
-			for (int y=0;y<1296;y++)
-			{
-				for (int x=0; x<2304; x++)
-				{
-					memTransparentBack[p] = pImage[p];
-					p++;
-					memTransparentBack[p] = pImage[p];
-					p++;
-					memTransparentBack[p] = pImage[p];
-					p++;
-				}
-			}
-
-			 
-			  char buffer [200];
-			  time_t rawtime;
-			  struct tm * timeinfo;
-			  time (&rawtime);
-			  timeinfo = localtime (&rawtime);
-			  strftime (buffer,200,"%y-%m-%d-%I-%M%p.bmp",timeinfo);
-
-			  CString str;
-			  if ( n==0 ) 
-				    str.Format("C:\\data\\snapshot\\left_%s",buffer);
-			  else
-				   str.Format("C:\\data\\snapshot\\right_%s",buffer);
-
-			  imageTransparentBack.Save(str);
-	  
-		}
-
-		imageTransparentBack.Destroy();
-
-		n++;
-				
-		return;
 }

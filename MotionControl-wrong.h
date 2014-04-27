@@ -2,9 +2,7 @@
 // wrapper class for motion control
 
 #include "Modbus.h"
-#include "time.h"
-#include "VMR_Capture.h"
-#include "edge3D Studio.h"
+
 #define PROFILE_NUM 8
 typedef struct MovePoint
 {
@@ -34,15 +32,13 @@ public:
 
 	void SetXYZCaptgureAddr( int nXcapture, int nYcapture, int nZcapture){m_nXCaptureAddr = nXcapture-m_nSERIAL_MODBUS_OFFSET ;m_nYCaptureAddr=nYcapture-m_nSERIAL_MODBUS_OFFSET; m_nZAddr=nZcapture-m_nSERIAL_MODBUS_OFFSET;}
 
+	bool OneXSegMentMove( float fspeed,float facc,float fdece,float fpos,float fjerk);
 
-	// never change anything of the xyz segmentmove function it just works 
+	bool OneYSegMentMove( float fspeed,float facc,float fdece,float fpos,float fjerk);
 
-	bool OneXSegMentMove(int nSeg, float fspeed,float facc,float fdece,float fpos,float fjerk);
+	bool OneZSegMentMove( float fspeed,float facc,float fdece,float fpos,float fjerk);
 
-	bool OneYSegMentMove(int nSeg, float fspeed,float facc,float fdece,float fpos,float fjerk);
-
-	bool OneZSegMentMove(int nSeg, float fspeed,float facc,float fdece,float fpos,float fjerk);
-
+	
 	short ReadStartCycle();
 
 	void ResetAll();
@@ -50,8 +46,8 @@ public:
 	// 0:OK 1: error 
 	int MoveByTedFile(CString filename,float fspeed,float facc,float fdece,float fjerk);
 	
-	void CaptureImage();
-
+	int MoveByTedStage1File(CString filename,float fspeed,float facc,float fdece,float fjerk);
+	
 
     // just call this functions for each move
 
@@ -66,9 +62,6 @@ public:
 	void SetSpeed(float fspeed);
 	void SetSegNum( int nSegNum);
 	void SetPos(float fpos);
-
-	void SetSnapshotFileName(char buffer[200]);
-
 
 	CString GetMotionCtlMessage() {return m_message;}
 	
@@ -94,10 +87,6 @@ protected:
 	int m_nMEASURE_OFFSET;
 	
 	CString m_message;
-
-	int m_nZhome;
-	int m_nXhome,m_nYhome;
-
 
 
 

@@ -9,7 +9,7 @@
 #endif
 
 #include "resource.h"		// main symbols
-
+#include "VMR_Capture.h"
 
 // Cedge3DStudioApp:
 // See edge3D Studio.cpp for the implementation of this class
@@ -19,7 +19,7 @@ class Cedge3DStudioApp : public CWinApp
 {
 public:
 	Cedge3DStudioApp();
-
+	CVMR_Capture m_VMRCap;
 // Overrides
 public:
 	virtual BOOL InitInstance();

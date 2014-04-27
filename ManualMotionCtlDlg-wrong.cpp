@@ -21,7 +21,6 @@ CManualMotionCtlDlg::CManualMotionCtlDlg(CWnd* pParent /*=NULL*/)
 
 CManualMotionCtlDlg::~CManualMotionCtlDlg()
 {
-
 }
 
 void CManualMotionCtlDlg::DoDataExchange(CDataExchange* pDX)
@@ -38,9 +37,6 @@ void CManualMotionCtlDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_JERK, m_Jerk);
 	DDX_Control(pDX, IDC_Y_MOTION_SEG, m_YMotionSeg);
 	DDX_Control(pDX, IDC_Z_MOTION_SEG, m_ZMotionSegNum);
-	DDX_Control(pDX, IDC_CAM_DEVICE, m_ctrlDevice);
-	DDX_Control(pDX, IDC_VIDEO, m_ctrlLiveVideo);
-	//  DDX_Control(pDX, IDC_CAPTURE, m_CaptureImg);
 }
 
 
@@ -66,10 +62,7 @@ BEGIN_MESSAGE_MAP(CManualMotionCtlDlg, CDialogEx)
 	//ON_BN_CLICKED(IDC_RESET_Z, &CManualMotionCtlDlg::OnBnClickedResetZ)
 	ON_BN_CLICKED(IDC_16POINTS_XYZ, &CManualMotionCtlDlg::OnBnClicked16pointsXyz)
 	ON_BN_CLICKED(IDC_RESTALL, &CManualMotionCtlDlg::OnBnClickedRestall)
-	ON_BN_CLICKED(IDC_TEST_RUN, &CManualMotionCtlDlg::OnBnClickedTestRun)
-	ON_BN_CLICKED(IDC_TEST_CAM_CAPTURE, &CManualMotionCtlDlg::OnBnClickedTestCamCapture)
-	ON_BN_CLICKED(IDC_INITCAM, &CManualMotionCtlDlg::OnBnClickedInitcam)
-	ON_BN_CLICKED(IDC_BUTTON_CAPTURE, &CManualMotionCtlDlg::OnBnClickedButtonCapture)
+	
 END_MESSAGE_MAP()
 
 
@@ -95,7 +88,7 @@ BOOL CManualMotionCtlDlg::OnInitDialog()
 
 	m_ZMotionSegNum.SetCurSel(0);
 	m_nMotionSegIndex = 1;
-	m_nYMotionSegIndex = 1;
+	
 
 	m_nStartCycle =0;
 
@@ -129,12 +122,6 @@ BOOL CManualMotionCtlDlg::OnInitDialog()
 	SetUpMotionCtl();
 
 	m_StartCycleFilename = "C:\\data\\startcycle.txt";
-	
-	if(theApp.m_VMRCap.EnumDevices(m_ctrlDevice.m_hWnd )>0)
-	{
-		m_ctrlDevice.SetCurSel (0);
-		
-	}
 	return TRUE;
 }
 
@@ -198,9 +185,7 @@ void CManualMotionCtlDlg::OnSelchangeYMotionSeg()
 {
 	// TODO: Add your control notification handler code here
 		CString str;
-		m_nYMotionSegIndex = m_MotionSeg.GetCurSel()+1;
-		if( m_nYMotionSegIndex < 0 ) return;
-       // m_Acceleration.SetWindowTextA("");
+	
 		//m_Speed.SetWindowTextA("");
 		//m_Deceleration.SetWindowTextA("");
 		m_Position.SetWindowTextA("");
@@ -218,11 +203,10 @@ void CManualMotionCtlDlg::OnTimer(UINT_PTR nIDEvent)
 		
 		m_nStartCycle = m_MotionCtl.ReadStartCycle();
     	if ( m_nStartCycle > 0)
-			OnBnClickedTestRun();
-		//JamesStartCycle();
+		JamesStartCycle();
 	}
 
-	return;
+	CDialogEx::OnTimer(nIDEvent);
 }
 
 
@@ -276,7 +260,9 @@ void CManualMotionCtlDlg::OnBnClickedButton1()
 	
 	m_MotionCtl.ResetAll();
 
-	if (m_MotionCtl.OneXSegMentMove(m_nMotionSegIndex,fspeed,facc,fdece,fpos,fjerk))
+	m_MotionCtl.SetSegNum(m_nMotionSegIndex); 
+
+	if (m_MotionCtl.OneXSegMentMove(fspeed,facc,fdece,fpos,fjerk))
 	{
 		str.Format("suceed Motion seg:%d position:%3.2f  ",m_nMotionSegIndex,fpos);
 
@@ -532,9 +518,9 @@ void CManualMotionCtlDlg::OnBnClickedButton2()
 	}
 	
 	m_MotionCtl.ResetAll();
+	m_MotionCtl.SetSegNum(m_nMotionSegIndex);
 
-
-	if (m_MotionCtl.OneYSegMentMove(m_nMotionSegIndex,fspeed,facc,fdece,fpos,fjerk))
+	if (m_MotionCtl.OneYSegMentMove(fspeed,facc,fdece,fpos,fjerk))
 	{
 		str.Format("suceed Motion seg:%d position:%3.2f  ",m_nMotionSegIndex,fpos);
 
@@ -1370,7 +1356,7 @@ void CManualMotionCtlDlg::JamesStartCycle()
 {
 	KillTimer(TIMER_CHECK_START_CYCLE);
 	
-
+	//CString filename = "C:\\data\\startcycle.txt";
 	CString str;
 	
 	float fspeed,facc,fdece,fpos,fjerk;
@@ -1456,13 +1442,13 @@ void CManualMotionCtlDlg::OnBnClickedGoto0()
 		AfxMessageBox("wrong jerk value");
 		return;
 	}
-	m_MotionCtl.ResetAll();
 
-	m_MotionCtl.OneXSegMentMove(m_nMotionSegIndex, fspeed, facc, fdece, 0, fjerk);
-	m_MotionCtl.ResetAll();
-	m_MotionCtl.OneYSegMentMove(m_nYMotionSegIndex, fspeed, facc, fdece, 0,fjerk);
-	m_MotionCtl.ResetAll();
-	m_MotionCtl.OneZSegMentMove(m_nYMotionSegIndex, fspeed, facc, fdece, 0,fjerk);
+	m_MotionCtl.SetSegNum(m_nMotionSegIndex);
+	m_MotionCtl.OneXSegMentMove( fspeed, facc, fdece, 0, fjerk);
+
+	m_MotionCtl.OneYSegMentMove( fspeed, facc, fdece, 0,fjerk);
+
+	m_MotionCtl.OneZSegMentMove( fspeed, facc, fdece, 0,fjerk);
 
 	MessageBox("done");
 
@@ -1481,7 +1467,7 @@ void CManualMotionCtlDlg::OnBnClickedButtonSingleZ()
 
 	CString str;
 		
-	int	ZSegNum = m_ZMotionSegNum.GetCurSel()+1;
+
     SetUpMotionCtl();
 
 	float fspeed,facc,fdece,fpos,fjerk;
@@ -1525,8 +1511,8 @@ void CManualMotionCtlDlg::OnBnClickedButtonSingleZ()
 	
 	m_MotionCtl.ResetAll();
 
-
-	if (m_MotionCtl.OneZSegMentMove(ZSegNum,fspeed,facc,fdece,fpos,fjerk))
+	m_MotionCtl.SetSegNum(m_nMotionSegIndex);
+	if (m_MotionCtl.OneZSegMentMove(fspeed,facc,fdece,fpos,fjerk))
 	{
 		str.Format("suceed Motion seg:%d position:%3.2f  ",m_nMotionSegIndex,fpos);
 
@@ -1575,6 +1561,7 @@ void CManualMotionCtlDlg::OnBnClickedButtonSingleZ()
 //}
 
 
+
 void CManualMotionCtlDlg::OnBnClicked16pointsXyz()
 {
 	// TODO: Add your control notification handler code here
@@ -1593,10 +1580,7 @@ void CManualMotionCtlDlg::OnBnClicked16pointsXyz()
     if(result != IDOK) return; // failed
 
 	m_strPathname = fileDlg.GetPathName();
-
-	::DeleteFileA(m_StartCycleFilename);
-
-	::CopyFileA(m_strPathname,m_StartCycleFilename,false);
+	//::CopyFileA(m_strPathname,m_StartCycleFilename,true);
 
     CString str;
     SetUpMotionCtl();
@@ -1648,6 +1632,7 @@ void CManualMotionCtlDlg::OnBnClicked16pointsXyz()
 void CManualMotionCtlDlg::OnBnClickedRestall()
 {
 	// TODO: Add your control notification handler code here
+	m_MotionCtl.ResetAll();
 }
 
 
@@ -1785,147 +1770,70 @@ void CManualMotionCtlDlg::SetUpMotionCtl(void)
 }
 
 
-void CManualMotionCtlDlg::OnBnClickedTestRun()
-{
-	// TODO: Add your control notification handler code here
-
-	CString stage1file = "C:\\data\\frame_stage1centers[ID_0][Wrap_0][lens_l].txt";
-
-	CString stage2file = "C:\\data\\frame_sensorpoints[ID_0][Wrap_0][lens_l].txt";
-
-	KillTimer(TIMER_CHECK_START_CYCLE);
-
-	 CString str;
-    SetUpMotionCtl();
-    
-	float fspeed,facc,fdece,fpos,fjerk;
-
-	m_Acceleration.GetWindowTextA(str);
-	if (!GetDoubleFromEditBox(str, facc))
-	{
-		AfxMessageBox("wrong acceleration value");
-		return;
-	}
-	    
-    m_Speed.GetWindowTextA(str);
-	if (!GetDoubleFromEditBox(str, fspeed))
-	{
-		AfxMessageBox("wrong speed value");
-		return;
-	}
-
-    m_Deceleration.GetWindowTextA(str);
-	if (!GetDoubleFromEditBox(str, fdece))
-	{
-		AfxMessageBox("wrong deceleration value");
-		return;
-	}
-
-	m_Jerk.GetWindowTextA(str);
-	if (!GetDoubleFromEditBox(str, fjerk))
-	{
-		AfxMessageBox("wrong jerk value");
-		return;
-	}
-
-	if (0 == m_MotionCtl.MoveByTedFile(stage1file,fspeed,facc,fdece,fjerk))
-	{
-		char xyzfilename[200];
-	    sprintf(xyzfilename,"%s_XYZ.txt",stage1file.GetBuffer(stage1file.GetLength()-3));
-	   // MessageBox(xyzfilename);
-	}
-	else
-	{
-		MessageBox(m_MotionCtl.GetMotionCtlMessage());
-
-	}
-
-
-	if (0 == m_MotionCtl.MoveByTedFile(stage2file,fspeed,facc,fdece,fjerk))
-	{
-		char xyzfilename[200];
-	    sprintf(xyzfilename,"%s_XYZ.txt",stage2file.GetBuffer(stage2file.GetLength()-3));
-	   // MessageBox(xyzfilename);
-	}
-	else
-	{
-		MessageBox(m_MotionCtl.GetMotionCtlMessage());
-
-	}
-	SetTimer(TIMER_CHECK_START_CYCLE,100,NULL);
-}
-
-
-void CManualMotionCtlDlg::OnBnClickedTestCamCapture()
-{
-	// TODO: Add your control notification handler code here
-	
-		return;
-	}
-
-
-
-
-
-void CManualMotionCtlDlg::OnBnClickedInitcam()
-{
-	// TODO: Add your control notification handler code here
-		int iSel=-1;
-	iSel=m_ctrlDevice.GetCurSel ();
-	theApp.m_VMRCap.Init(iSel,m_ctrlLiveVideo.m_hWnd, CAM_WIDTH, CAM_HEIGHT);
-	this->GetDlgItem (IDC_INITCAM)->EnableWindow(FALSE);
-	
-}
-
-
-void CManualMotionCtlDlg::OnBnClickedButtonCapture()
-{
-	// TODO: Add your control notification handler code here
-
-	DWORD dwSize;
-	
-	dwSize=theApp.m_VMRCap.GrabFrame ();
-	if(dwSize>0)
-	{
-		BYTE *pImage;
-		theApp.m_VMRCap.GetFrame (&pImage);
-		//this->m_ctrlCaptureIMG .ShowImage (pImage);
-	}
-
-
-		int p = 0;
-		CImage imageTransparentBack;
-		imageTransparentBack.Create(2304, -1296, 24);
-
-		BYTE* memTransparentBack = (BYTE*)imageTransparentBack.GetBits();
-
-		if(dwSize > 0)
-		{
-			BYTE *pImage;
-
-			dwSize=theApp.m_VMRCap.GetFrame(&pImage);
-
-			for (int y=0;y<1296;y++)
-			{
-				for (int x=0; x<2304; x++)
-				{
-					memTransparentBack[p] = pImage[p];
-					p++;
-					memTransparentBack[p] = pImage[p];
-					p++;
-					memTransparentBack[p] = pImage[p];
-					p++;
-				}
-			}
-
-			 
-			  char buffer [200];
-			 // SetSnapshotFileName(buffer);
-			  imageTransparentBack.Save("C:\\data\\temp.bmp");
-	  
-		}
-
-		imageTransparentBack.Destroy();
-
-
-}
+//void CManualMotionCtlDlg::OnBnClickedStage1()
+//{
+//	// TODO: Add your control notification handler code here
+//
+//	
+//
+//	char szFilters[]= "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";
+//	CString m_strPathname; 
+// Create an Open dialog; the default file name extension is ".my".
+//    CFileDialog fileDlg (TRUE, "txt", "*.txt",
+//    OFN_FILEMUSTEXIST| OFN_HIDEREADONLY, szFilters, this);
+//
+// Display the file dialog. When user clicks OK, fileDlg.DoModal()
+// returns IDOK.
+//
+//	auto result = fileDlg.DoModal();
+//    if(result != IDOK) return; // failed
+//
+//	m_strPathname = fileDlg.GetPathName();
+//	::CopyFileA(m_strPathname,m_StartCycleFilename,true);
+//
+//    CString str;
+//    SetUpMotionCtl();
+//    
+//	float fspeed,facc,fdece,fpos,fjerk;
+//
+//	m_Acceleration.GetWindowTextA(str);
+//	if (!GetDoubleFromEditBox(str, facc))
+//	{
+//		AfxMessageBox("wrong acceleration value");
+//		return;
+//	}
+//	    
+//    m_Speed.GetWindowTextA(str);
+//	if (!GetDoubleFromEditBox(str, fspeed))
+//	{
+//		AfxMessageBox("wrong speed value");
+//		return;
+//	}
+//
+//    m_Deceleration.GetWindowTextA(str);
+//	if (!GetDoubleFromEditBox(str, fdece))
+//	{
+//		AfxMessageBox("wrong deceleration value");
+//		return;
+//	}
+//
+//	m_Jerk.GetWindowTextA(str);
+//	if (!GetDoubleFromEditBox(str, fjerk))
+//	{
+//		AfxMessageBox("wrong jerk value");
+//		return;
+//	}
+//
+//	if (0 == m_MotionCtl.MoveByTedFile(m_strPathname,fspeed,facc,fdece,fjerk))
+//	{
+//		char xyzfilename[200];
+//	    sprintf(xyzfilename,"%s_XYZ.txt",m_strPathname.GetBuffer(m_strPathname.GetLength()-3));
+//	    MessageBox(xyzfilename);
+//	}
+//	else
+//	{
+//		MessageBox(m_MotionCtl.GetMotionCtlMessage());
+//
+//	}
+//
+//}

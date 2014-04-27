@@ -1,15 +1,11 @@
 #pragma once
 #include "afxwin.h"
 #include "MotionControl.h"
-#include "Showpic.h"
 
 // CManualMotionCtlDlg dialog
 #define TIMER_CHECK_START_CYCLE 100
 
-#define CAM_WIDTH  2304
-#define CAM_HEIGHT 1296
-#define CAM_BITS   24
-	
+
 
 class CManualMotionCtlDlg : public CDialogEx
 {
@@ -45,7 +41,7 @@ public:
 //	float m_fAcceleration;
 //	float m_fSpeed;
 	int m_nMotionSegIndex;
-	int m_nYMotionSegIndex;
+	
 
 	afx_msg void OnSelchangeMotionsegment();
 	CEdit m_Speed;
@@ -56,7 +52,7 @@ public:
 
 	CMotionControl m_MotionCtl;
 	short m_nStartCycle;
-
+	CString m_StartCycleFilename;
 	
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 //	afx_msg void OnBnClickedSinglestepstart();
@@ -78,11 +74,6 @@ public:
 	int m_nYStartAddress;
 	int m_nYCompleteAddress;
 
-	CString m_StartCycleFilename;
-
-
-
-
 //	afx_msg void OnBnClickedReset();
 //	afx_msg void OnBnClickedMoveSequence();
 	CComboBox m_YMotionSeg;
@@ -103,11 +94,5 @@ public:
 	afx_msg void OnBnClicked16pointsXyz();
 	afx_msg void OnBnClickedRestall();
 	void SetUpMotionCtl(void);
-	afx_msg void OnBnClickedTestRun();
-	afx_msg void OnBnClickedTestCamCapture();
-	CComboBox m_ctrlDevice;
-	afx_msg void OnBnClickedInitcam();
-	CStatic m_ctrlLiveVideo;
-//	CShowpic m_CaptureImg;
-	afx_msg void OnBnClickedButtonCapture();
+//	afx_msg void OnBnClickedStage1();
 };
