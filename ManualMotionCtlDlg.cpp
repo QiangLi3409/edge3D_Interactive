@@ -56,7 +56,7 @@ BEGIN_MESSAGE_MAP(CManualMotionCtlDlg, CDialogEx)
 	ON_CBN_SELCHANGE(IDC_Y_MOTION_SEG, &CManualMotionCtlDlg::OnSelchangeYMotionSeg)
 	ON_BN_CLICKED(IDC_BUTTON2, &CManualMotionCtlDlg::OnBnClickedButton2)
 	//ON_BN_CLICKED(IDC_TEST_MOVE, &CManualMotionCtlDlg::OnBnClickedTestMove)
-	ON_BN_CLICKED(IDC_RESTALL, &CManualMotionCtlDlg::OnBnClickedRestall)
+//	ON_BN_CLICKED(IDC_RESTALL, &CManualMotionCtlDlg::OnBnClickedRestall)
 
 	//ON_BN_CLICKED(IDC_RUN_AB_SEQUENCE, &CManualMotionCtlDlg::OnBnClickedRunAbSequence)
 	ON_BN_CLICKED(IDC_16POINTS, &CManualMotionCtlDlg::OnBnClicked16points)
@@ -65,11 +65,12 @@ BEGIN_MESSAGE_MAP(CManualMotionCtlDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_SINGLE_Z, &CManualMotionCtlDlg::OnBnClickedButtonSingleZ)
 	//ON_BN_CLICKED(IDC_RESET_Z, &CManualMotionCtlDlg::OnBnClickedResetZ)
 	ON_BN_CLICKED(IDC_16POINTS_XYZ, &CManualMotionCtlDlg::OnBnClicked16pointsXyz)
-	ON_BN_CLICKED(IDC_RESTALL, &CManualMotionCtlDlg::OnBnClickedRestall)
+//	ON_BN_CLICKED(IDC_RESTALL, &CManualMotionCtlDlg::OnBnClickedRestall)
 	ON_BN_CLICKED(IDC_TEST_RUN, &CManualMotionCtlDlg::OnBnClickedTestRun)
 	ON_BN_CLICKED(IDC_TEST_CAM_CAPTURE, &CManualMotionCtlDlg::OnBnClickedTestCamCapture)
 	ON_BN_CLICKED(IDC_INITCAM, &CManualMotionCtlDlg::OnBnClickedInitcam)
 	ON_BN_CLICKED(IDC_BUTTON_CAPTURE, &CManualMotionCtlDlg::OnBnClickedButtonCapture)
+	ON_LBN_SELCHANGE(IDC_POS, &CManualMotionCtlDlg::OnLbnSelchangePos)
 END_MESSAGE_MAP()
 
 
@@ -135,7 +136,11 @@ BOOL CManualMotionCtlDlg::OnInitDialog()
 		m_ctrlDevice.SetCurSel (0);
 		
 	}
-	return TRUE;
+
+	SetTimer(TIMER_INIT_CAMERA,500,NULL);
+
+	return  true;
+	
 }
 
 bool CManualMotionCtlDlg::GetDoubleFromEditBox(const CString str, float &output)
@@ -221,6 +226,21 @@ void CManualMotionCtlDlg::OnTimer(UINT_PTR nIDEvent)
 			OnBnClickedTestRun();
 		//JamesStartCycle();
 	}
+
+	if (nIDEvent == TIMER_INIT_CAMERA)
+	{
+		KillTimer(TIMER_INIT_CAMERA);
+		int iSel=-1;
+	iSel=m_ctrlDevice.GetCurSel ();
+	theApp.m_VMRCap.Init(iSel,m_ctrlLiveVideo.m_hWnd, CAM_WIDTH, CAM_HEIGHT);
+	this->GetDlgItem (IDC_INITCAM)->EnableWindow(FALSE);
+	
+	this->GetDlgItem(IDC_16POINTS_XYZ)->EnableWindow(TRUE);
+	this->GetDlgItem(IDC_TEST_RUN)->EnableWindow(TRUE);
+
+		
+	}
+
 
 	return;
 }
@@ -1645,10 +1665,10 @@ void CManualMotionCtlDlg::OnBnClicked16pointsXyz()
 }
 
 
-void CManualMotionCtlDlg::OnBnClickedRestall()
-{
-	// TODO: Add your control notification handler code here
-}
+//void CManualMotionCtlDlg::OnBnClickedRestall()
+//{
+//	// TODO: Add your control notification handler code here
+//}
 
 
 void CManualMotionCtlDlg::SetUpMotionCtl(void)
@@ -1870,7 +1890,7 @@ void CManualMotionCtlDlg::OnBnClickedTestCamCapture()
 void CManualMotionCtlDlg::OnBnClickedInitcam()
 {
 	// TODO: Add your control notification handler code here
-		int iSel=-1;
+	int iSel=-1;
 	iSel=m_ctrlDevice.GetCurSel ();
 	theApp.m_VMRCap.Init(iSel,m_ctrlLiveVideo.m_hWnd, CAM_WIDTH, CAM_HEIGHT);
 	this->GetDlgItem (IDC_INITCAM)->EnableWindow(FALSE);
@@ -1928,4 +1948,10 @@ void CManualMotionCtlDlg::OnBnClickedButtonCapture()
 		imageTransparentBack.Destroy();
 
 
+}
+
+
+void CManualMotionCtlDlg::OnLbnSelchangePos()
+{
+	// TODO: Add your control notification handler code here
 }

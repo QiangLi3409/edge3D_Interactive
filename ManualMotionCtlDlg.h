@@ -5,6 +5,8 @@
 
 // CManualMotionCtlDlg dialog
 #define TIMER_CHECK_START_CYCLE 100
+#define TIMER_INIT_CAMERA 101
+
 
 #define CAM_WIDTH  2304
 #define CAM_HEIGHT 1296
@@ -101,7 +103,7 @@ public:
 	CComboBox m_ZMotionSegNum;
 //	afx_msg void OnBnClickedResetZ();
 	afx_msg void OnBnClicked16pointsXyz();
-	afx_msg void OnBnClickedRestall();
+//	afx_msg void OnBnClickedRestall();
 	void SetUpMotionCtl(void);
 	afx_msg void OnBnClickedTestRun();
 	afx_msg void OnBnClickedTestCamCapture();
@@ -110,4 +112,5 @@ public:
 	CStatic m_ctrlLiveVideo;
 //	CShowpic m_CaptureImg;
 	afx_msg void OnBnClickedButtonCapture();
+	afx_msg void OnLbnSelchangePos();
 };

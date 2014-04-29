@@ -494,7 +494,7 @@ int CMotionControl::MoveByTedFile(CString filename,float fspeed,float facc,float
 				
 				//AfxMessageBox("Take snapshot");
 
-				Sleep(2000);
+				Sleep(1000);
 				CaptureImage();
 
 				break;
@@ -600,23 +600,13 @@ void CMotionControl::CaptureImage()
 			break;
 	}
 
-	if(dwSize>0)
-	{
-		BYTE *pImage;
-		theApp.m_VMRCap.GetFrame (&pImage);
-	}
-	else 
-		return;
-
-
-		int p = 0;
-		CImage imageTransparentBack;
-		imageTransparentBack.Create(2304, -1296, 24);
+	int p = 0;
+	CImage imageTransparentBack;
+	imageTransparentBack.Create(2304, -1296, 24);
 
 		BYTE* memTransparentBack = (BYTE*)imageTransparentBack.GetBits();
 
-		if(dwSize > 0)
-		{
+		
 			BYTE *pImage;
 
 			dwSize=theApp.m_VMRCap.GetFrame(&pImage);
@@ -643,15 +633,32 @@ void CMotionControl::CaptureImage()
 			  strftime (buffer,200,"%y-%m-%d-%I-%M%p.bmp",timeinfo);
 
 			  CString str;
-			  if ( n==0 ) 
-				    str.Format("C:\\data\\snapshot\\left_%s",buffer);
-			  else
-				   str.Format("C:\\data\\snapshot\\right_%s",buffer);
+
+			  str.Format("C:\\data\\snapshot\\%d_%s",n,buffer);
+			//  if ( n==0 ) 
+			//	    str.Format("C:\\data\\snapshot\\left_%s",buffer);
+			//  else
+     //				   str.Format("C:\\data\\snapshot\\right_%s",buffer);
+
+			     // flip the image around y
+
+			  int w = imageTransparentBack.GetWidth();
+			  int h = imageTransparentBack.GetHeight();
+
+			  for(int y =0 ;y<h;y++)
+			  {
+				  for (int x=0;x<w/2;x++)
+				  {
+					  COLORREF temp =  imageTransparentBack.GetPixel(x,y);
+
+					  imageTransparentBack.SetPixel(x,y,imageTransparentBack.GetPixel(w-1-x,y));
+					  imageTransparentBack.SetPixel(w-1-x,y,temp);
+					  
+				  }
+			  }
 
 			  imageTransparentBack.Save(str);
 	  
-		}
-
 		imageTransparentBack.Destroy();
 
 		n++;
